@@ -887,7 +887,7 @@ function getMaterial(key, code, sub) {
     const cat = state.categories.find((c) => c.code === code);
     color = (cat && cat.color) || '#b9c0c8';
   }
-  const seeThrough = (code === 'M' || code === 'W');   // 门、窗：半透明，便于看洞口后的排砖
+  const seeThrough = (code === 'M' || code === 'W' || code === 'G');   // 门、窗、幕墙玻璃：半透明，便于看后面的排砖
   mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(color),
     roughness: 0.87,
