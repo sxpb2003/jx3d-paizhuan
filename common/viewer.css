@@ -527,6 +527,85 @@ canvas#gl {
 .btn[aria-pressed="true"] { background: var(--ink-2); border-color: var(--ink-2); color: #f9fafb; }
 .btn-sm { padding: 3px 9px; font-size: 10.5px; font-weight: 600; }
 
+/* ---------------- 构件信息卡 ---------------- */
+.info-card {
+  position: absolute;
+  right: 16px;
+  top: calc(var(--top-h) + var(--stats-h) + 14px);
+  width: 306px;
+  z-index: 26;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--glass);
+  border: 1px solid rgba(255, 255, 255, .62);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  -webkit-backdrop-filter: blur(16px) saturate(1.5);
+  backdrop-filter: blur(16px) saturate(1.5);
+}
+.info-card[hidden] { display: none; }
+.ic-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 9px;
+}
+.ic-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+}
+.ic-title::before {
+  content: "";
+  width: 3px;
+  height: 12px;
+  border-radius: 2px;
+  background: #ff8a1e;
+}
+.ic-close {
+  width: 22px;
+  height: 22px;
+  line-height: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(17, 24, 39, .06);
+  color: var(--muted);
+  font-size: 15px;
+  cursor: pointer;
+}
+.ic-close:hover { background: rgba(17, 24, 39, .14); color: var(--ink); }
+.ic-list {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  max-height: 46vh;
+  overflow: auto;
+}
+.ic-list > div { display: flex; gap: 10px; font-size: 11.5px; line-height: 1.55; }
+.ic-list dt { flex: 0 0 80px; color: var(--muted); }
+.ic-list dd {
+  margin: 0;
+  flex: 1 1 auto;
+  color: var(--ink-3);
+  font-weight: 600;
+  word-break: break-all;
+  font-variant-numeric: tabular-nums;
+}
+.ic-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px dashed rgba(17, 24, 39, .12);
+}
+.ic-hint { font-size: 10px; color: var(--muted-2); }
+
 /* 页脚 */
 .meta-footer {
   position: absolute;
@@ -724,6 +803,22 @@ canvas#gl {
   }
   .meta-inline b { color: var(--ink-3); font-weight: 600; }
   .toast { bottom: 72px; }
+
+  /* 手机端：构件信息卡改成底部卡片，不遮挡模型主体 */
+  .info-card {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: calc(56px + env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 46vh;
+    z-index: 46;
+    padding: 10px 12px;
+    border-radius: 14px;
+  }
+  .ic-list { max-height: 28vh; }
+  .ic-list dt { flex: 0 0 72px; }
+  .ic-title { font-size: 11.5px; }
 }
 
 @media (max-width: 767px) and (max-height: 460px) {

@@ -60,7 +60,7 @@
    },
    "blocks": 17200,
    "sizeMB": 1.39,
-   "labelQuads": 34346
+   "labelQuads": 10976
   },
   {
    "key": "F03",
@@ -78,7 +78,7 @@
    },
    "blocks": 24,
    "sizeMB": 0.03,
-   "labelQuads": 48
+   "labelQuads": 36
   }
  ],
  "categories": [
@@ -158,9 +158,19 @@
   "textHeight": 0.15,
   "defaultOn": true,
   "lodDistance": 16.0,
+  "family": "蒸压加气混凝土砌块",
   "nodes": {
    "F02": "L_F02",
    "F03": "L_F03"
+  }
+ },
+ "edges": {
+  "file": "assets/edges.glb",
+  "defaultOn": true,
+  "nodes": {
+   "F01": "E_F01",
+   "F02": "E_F02",
+   "F03": "E_F03"
   }
  },
  "stats": {

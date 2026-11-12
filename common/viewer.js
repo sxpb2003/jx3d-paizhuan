@@ -82,6 +82,7 @@ const APP_TEMPLATE = `
           <button class="btn" id="btnShowAll" type="button">显示全部</button>
           <button class="btn" id="btnGrid" type="button" aria-pressed="false">地面网格</button>
           <button class="btn" id="btnLabels" type="button" aria-pressed="true">砌块标注</button>
+          <button class="btn" id="btnEdges" type="button" aria-pressed="true">砖边线/灰缝</button>
         </div>
       </section>
       <section class="sec">
@@ -91,12 +92,24 @@ const APP_TEMPLATE = `
       <section class="sec">
         <h2 class="sec-h">操作提示 <span class="sec-hint">鼠标 / 触屏</span></h2>
         <ul class="hint-list">
+          <li>单击构件可查看族名 / 规格 / 尺寸 / 元素 ID</li>
           <li>左键旋转 · 滚轮 / 双指缩放 · 右键平移</li>
           <li>双击模型或点「复位视角」回到初始视角</li>
           <li>剖切沿竖向 Y 轴，仅作用于模型</li>
         </ul>
       </section>
       <div class="meta-inline" id="metaInline"></div>
+    </div>
+  </aside>
+  <aside class="info-card" id="infoCard" hidden>
+    <div class="ic-head">
+      <span class="ic-title">构件信息</span>
+      <button class="ic-close" id="icClose" type="button" aria-label="关闭构件信息">×</button>
+    </div>
+    <dl class="ic-list" id="icList"></dl>
+    <div class="ic-actions">
+      <button class="btn btn-sm" id="icCopy" type="button">复制信息</button>
+      <span class="ic-hint">点空白处 / Esc 取消</span>
     </div>
   </aside>
   <footer class="meta-footer" id="metaFooter"></footer>
@@ -158,7 +171,36 @@ const state = {
     filter: null,
     invalid: false,
     bounds: null,
+    family: '',
   },
+  edges: {
+    cfg: null,
+    root: null,
+    nodesByFloor: {},
+    loaded: false,
+    error: null,
+    on: true,
+  },
+  elements: {
+    meta: null,
+    rows: null,
+    count: 0,
+    ready: false,
+    error: null,
+    cell: 2,
+    grid: new Map(),
+    floorRows: new Map(),
+    floorKeyToIdx: new Map(),
+  },
+  selection: null,
+  pickables: [],
+  pick: {
+    downX: 0,
+    downY: 0,
+    downTime: 0,
+    dragging: false,
+  },
+  highlight: null,
   meshCount: 0,
   loadedNodes: 0,
   triangles: 0,
@@ -184,7 +226,8 @@ function buildDOM() {
     'statTotalBlocks', 'statFloors', 'statElements',
     'panel', 'sheetHandle', 'floorList', 'catList',
     'clipValue', 'clipState', 'clipRange', 'clipMin', 'clipMax',
-    'btnClipOff', 'btnReset', 'btnResetTop', 'btnShowAll', 'btnGrid', 'btnLabels',
+    'btnClipOff', 'btnReset', 'btnResetTop', 'btnShowAll', 'btnGrid', 'btnLabels', 'btnEdges',
+    'infoCard', 'icList', 'icClose', 'icCopy',
     'infoList', 'metaInline', 'metaFooter', 'toast', 'loader', 'loaderBar', 'loaderPct',
     'loaderStatus', 'loaderProject', 'loaderRetry',
   ].forEach((id) => { ui[id] = $(id); });
@@ -408,10 +451,20 @@ function applyManifest() {
 
   const lcfg = m.labels && typeof m.labels === 'object' ? m.labels : null;
   state.labels.cfg = lcfg && lcfg.file ? lcfg : null;
+  state.labels.family = (lcfg && lcfg.family) || '';
   // 手机默认关闭砌块标注（4096 级图集纹理占显存），并且延迟到用户手动开启时才加载
   const mobileView = window.innerWidth < 768;
   state.labels.on = mobileView ? false : !(lcfg && lcfg.defaultOn === false);
   state.labels.deferred = !!(mobileView && state.labels.cfg);
+
+  // 砖边线 / 灰缝层（独立 GLB，按楼层同步显隐，不做距离 LOD）
+  const ecfg = m.edges && typeof m.edges === 'object' ? m.edges : null;
+  state.edges.cfg = ecfg && ecfg.file ? ecfg : null;
+  state.edges.on = !(ecfg && ecfg.defaultOn === false);
+
+  // 构件点选数据（与 model.json 同级，缺省 elements.json；加载失败静默降级）
+  const elems = m.elements && typeof m.elements === 'object' ? m.elements : null;
+  state.elements.cfg = { file: (elems && elems.file) || 'elements.json' };
 
   const rvt = (m.source && m.source.rvt) || (CFG.footer && CFG.footer.rvt) || '—';
   renderFooter(rvt, m.generated || '—');
@@ -471,7 +524,11 @@ async function loadAssets() {
   const floors = state.floors;
   const labelCfg = state.labels.cfg;
   const hasLabels = !!(labelCfg && labelCfg.file) && !state.labels.deferred;
-  const totalTasks = floors.length + (hasLabels ? 1 : 0);
+  const edgeCfg = state.edges.cfg;
+  const hasEdges = !!(edgeCfg && edgeCfg.file);
+  const elemsCfg = state.elements.cfg;
+  const hasElements = !!(elemsCfg && elemsCfg.file);
+  const totalTasks = floors.length + (hasLabels ? 1 : 0) + (hasEdges ? 1 : 0) + (hasElements ? 1 : 0);
   const fracs = new Array(totalTasks).fill(0);
   const loadedBytes = new Array(totalTasks).fill(0);
   const totalBytes = new Array(totalTasks).fill(0);
@@ -526,9 +583,11 @@ async function loadAssets() {
     }
   });
 
+  let nextIdx = floors.length;
   let labelTask = Promise.resolve(null);
   if (hasLabels) {
-    const idx = floors.length;
+    const idx = nextIdx;
+    nextIdx += 1;
     const url = new URL(labelCfg.file, BASE_URL).href;
     labelTask = (async () => {
       try {
@@ -550,9 +609,59 @@ async function loadAssets() {
     })();
   }
 
-  const [floorResults, labelGltf] = await Promise.all([Promise.all(floorTasks), labelTask]);
+  let edgeTask = Promise.resolve(null);
+  if (hasEdges) {
+    const idx = nextIdx;
+    nextIdx += 1;
+    const url = new URL(edgeCfg.file, BASE_URL).href;
+    edgeTask = (async () => {
+      try {
+        const buf = await fetchBuffer(url, report(idx));
+        fracs[idx] = 1;
+        const gltf = await loader.parseAsync(buf, BASE_URL.href);
+        done += 1;
+        tick();
+        return gltf;
+      } catch (err) {
+        fracs[idx] = 1;
+        done += 1;
+        tick();
+        state.edges.error = (err && err.message) ? err.message : String(err);
+        console.warn('[viewer] 砖边线层加载失败（已忽略）', err);
+        return null;
+      }
+    })();
+  }
+
+  let elementsTask = Promise.resolve(null);
+  if (hasElements) {
+    const idx = nextIdx;
+    nextIdx += 1;
+    const url = new URL(elemsCfg.file, BASE_URL).href;
+    elementsTask = (async () => {
+      try {
+        const buf = await fetchBuffer(url, report(idx));
+        fracs[idx] = 1;
+        done += 1;
+        tick();
+        const text = new TextDecoder('utf-8').decode(new Uint8Array(buf));
+        return JSON.parse(text);
+      } catch (err) {
+        fracs[idx] = 1;
+        done += 1;
+        tick();
+        state.elements.error = (err && err.message) ? err.message : String(err);
+        console.warn('[viewer] 构件信息 elements.json 加载失败（点选已禁用）', err);
+        return null;
+      }
+    })();
+  }
+
+  const [floorResults, labelGltf, edgeGltf, elementsJson] = await Promise.all([
+    Promise.all(floorTasks), labelTask, edgeTask, elementsTask,
+  ]);
   draco.dispose();
-  return { floorResults, labelGltf };
+  return { floorResults, labelGltf, edgeGltf, elementsJson };
 }
 
 /* ============================================================
@@ -798,6 +907,7 @@ function buildModel(results) {
   const root = state.model;
   state.bbox.makeEmpty();
   state.bboxRaw = null;
+  state.pickables = [];
 
   // 先把所有楼层烘焙成顶点数组，再统一判断“主体锚点”，
   // 这样能剔除遗留在原点的原型/杂散构件（真实 Revit 绝对坐标常见）。
@@ -943,6 +1053,7 @@ function buildModel(results) {
       mesh.visible = true;
       group.add(mesh);
       meshes.push(mesh);
+      state.pickables.push(mesh);
       actualElements += b.count;
       actualByGroup[key] = b.count;
       state.meshCount += 1;
@@ -1191,6 +1302,418 @@ function updateLabelsLOD() {
     applyLabelsVisibility();
     updateInfoDynamic();
   }
+}
+
+/* ============================================================
+ * 六·B、砖边线 / 灰缝层（独立 GLB，按楼层同步显隐，不做距离 LOD）
+ * ============================================================ */
+function fixEdgesMaterial(mat) {
+  const mats = Array.isArray(mat) ? mat : [mat];
+  mats.forEach((m) => {
+    if (!m) return;
+    m.alphaTest = 0.35;
+    m.transparent = false;
+    m.depthWrite = false;
+    m.polygonOffset = true;
+    m.polygonOffsetFactor = -1;
+    m.side = THREE.DoubleSide;
+    m.needsUpdate = true;
+    if (m.map) {
+      m.map.anisotropy = 4;
+      m.map.needsUpdate = true;
+    }
+  });
+}
+
+function buildEdges(gltf) {
+  if (!gltf || !gltf.scene) {
+    state.edges.loaded = false;
+    updateInfoDynamic();
+    return;
+  }
+  const cfg = state.edges.cfg || {};
+  const roots = gltf.scene;
+  roots.updateMatrixWorld(true);
+  roots.traverse((obj) => {
+    if (!obj.isMesh && !obj.isLine && !obj.isPoints) return;
+    fixEdgesMaterial(obj.material);
+    obj.renderOrder = 10;
+    obj.frustumCulled = true;
+  });
+  roots.position.set(-state.worldShift.x, 0, -state.worldShift.z);
+  state.scene.add(roots);
+  state.edges.root = roots;
+
+  const map = {};
+  if (cfg.nodes && typeof cfg.nodes === 'object') {
+    Object.entries(cfg.nodes).forEach(([floorKey, nodeName]) => {
+      const node = roots.getObjectByName(nodeName);
+      if (node) map[floorKey] = node;
+    });
+  }
+  if (!Object.keys(map).length) {
+    roots.traverse((obj) => {
+      const n = String(obj.name || '');
+      const m2 = /^E_(.+)$/.exec(n);
+      if (!m2) return;
+      const raw = m2[1];
+      const hit = state.floors.find((f) => f.key === raw || ('E_' + f.key) === n);
+      map[hit ? hit.key : raw] = obj;
+    });
+  }
+  state.edges.nodesByFloor = map;
+  state.edges.loaded = true;
+  if (window.__viewer) window.__viewer.edgesRoot = state.edges.root;
+  applyEdgesVisibility();
+  updateInfoDynamic();
+}
+
+function applyEdgesVisibility() {
+  const E = state.edges;
+  if (!E.root) return;
+  const base = E.loaded && E.on;
+  Object.entries(E.nodesByFloor).forEach(([floorKey, node]) => {
+    const floorVisible = state.selectedFloor === 'all' || state.selectedFloor === floorKey;
+    node.visible = base && floorVisible;
+  });
+}
+
+function setEdges(on) {
+  const next = typeof on === 'boolean' ? on : !state.edges.on;
+  state.edges.on = next;
+  applyEdgesVisibility();
+  updateInfoDynamic();
+  return stats();
+}
+
+/* ============================================================
+ * 六·C、构件点选（elements.json 空间索引 + raycast + 信息卡）
+ * ============================================================ */
+function buildElements(json) {
+  const E = state.elements;
+  E.ready = false;
+  if (!json || !Array.isArray(json.rows) || !json.rows.length) {
+    E.error = json ? 'elements.json rows 为空' : E.error;
+    updateInfoDynamic();
+    return;
+  }
+  E.meta = {
+    units: json.units || 'm',
+    coord: json.coord || 'gltf',
+    floors: Array.isArray(json.floors) ? json.floors : [],
+    categories: Array.isArray(json.categories) ? json.categories : [],
+    families: Array.isArray(json.families) ? json.families : [],
+    specs: Array.isArray(json.specs) ? json.specs : [],
+  };
+  E.rows = json.rows;
+  E.count = json.rows.length;
+  E.floorKeyToIdx = new Map();
+  E.meta.floors.forEach((k, i) => E.floorKeyToIdx.set(String(k), i));
+  E.floorRows = new Map();
+  E.grid = new Map();
+  E.allRows = new Array(E.count);
+  const cell = E.cell;
+  for (let i = 0; i < E.count; i += 1) {
+    const r = E.rows[i];
+    E.allRows[i] = i;
+    const hi = r[0];
+    let list = E.floorRows.get(hi);
+    if (!list) { list = []; E.floorRows.set(hi, list); }
+    list.push(i);
+    const x0 = Math.min(r[5], r[8]);
+    const x1 = Math.max(r[5], r[8]);
+    const z0 = Math.min(r[7], r[10]);
+    const z1 = Math.max(r[7], r[10]);
+    const gx0 = Math.floor(x0 / cell);
+    const gx1 = Math.floor(x1 / cell);
+    const gz0 = Math.floor(z0 / cell);
+    const gz1 = Math.floor(z1 / cell);
+    if ((gx1 - gx0 + 1) * (gz1 - gz0 + 1) > 256) continue; // 超大构件不进网格，仍可用楼层兜底
+    for (let gx = gx0; gx <= gx1; gx += 1) {
+      for (let gz = gz0; gz <= gz1; gz += 1) {
+        const key = gx + '|' + gz;
+        let arr = E.grid.get(key);
+        if (!arr) { arr = []; E.grid.set(key, arr); }
+        arr.push(i);
+      }
+    }
+  }
+  E.ready = true;
+  E.error = null;
+  updateInfoDynamic();
+}
+
+/** 在 elements.json 中查找包含 world 点的构件（多命中取体积最小），找不到取最近中心 ≤0.3m */
+function findElementAt(wx, wy, wz, floorKeyHint) {
+  const E = state.elements;
+  if (!E.ready) return -1;
+  const rows = E.rows;
+  const floorIdx = (floorKeyHint != null && E.floorKeyToIdx.has(floorKeyHint))
+    ? E.floorKeyToIdx.get(floorKeyHint) : null;
+  const tried = new Set();
+  let best = -1;
+  let bestVol = Infinity;
+  const consider = (idx) => {
+    if (tried.has(idx)) return;
+    tried.add(idx);
+    const r = rows[idx];
+    if (floorIdx != null && r[0] !== floorIdx) return;
+    const mnx = Math.min(r[5], r[8]);
+    const mxx = Math.max(r[5], r[8]);
+    const mny = Math.min(r[6], r[9]);
+    const mxy = Math.max(r[6], r[9]);
+    const mnz = Math.min(r[7], r[10]);
+    const mxz = Math.max(r[7], r[10]);
+    if (wx < mnx - 0.01 || wx > mxx + 0.01) return;
+    if (wy < mny - 0.01 || wy > mxy + 0.01) return;
+    if (wz < mnz - 0.01 || wz > mxz + 0.01) return;
+    const vol = (mxx - mnx) * (mxy - mny) * (mxz - mnz);
+    if (vol < bestVol) { bestVol = vol; best = idx; }
+  };
+  const cell = E.cell;
+  const gx = Math.floor(wx / cell);
+  const gz = Math.floor(wz / cell);
+  for (let dx = -1; dx <= 1; dx += 1) {
+    for (let dz = -1; dz <= 1; dz += 1) {
+      const arr = E.grid.get((gx + dx) + '|' + (gz + dz));
+      if (arr) arr.forEach(consider);
+    }
+  }
+  if (best >= 0) return best;
+  // 兜底：同楼层内找最近中心（≤0.3m）
+  const list = floorIdx != null ? (E.floorRows.get(floorIdx) || []) : E.allRows;
+  let nearest = -1;
+  let nd = 0.3;
+  for (let k = 0; k < list.length; k += 1) {
+    const i = list[k];
+    const r = rows[i];
+    const cx = (r[5] + r[8]) / 2;
+    const cy = (r[6] + r[9]) / 2;
+    const cz = (r[7] + r[10]) / 2;
+    const d = Math.hypot(cx - wx, cy - wy, cz - wz);
+    if (d < nd) { nd = d; nearest = i; }
+  }
+  return nearest;
+}
+
+function elementInfo(index) {
+  const E = state.elements;
+  if (!E.ready || !E.rows) return null;
+  const r = E.rows[index];
+  if (!r) return null;
+  const floorKey = E.meta.floors[r[0]] != null ? String(E.meta.floors[r[0]]) : '';
+  const catCode = E.meta.categories[r[1]] != null ? String(E.meta.categories[r[1]]) : '';
+  const family = E.meta.families[r[2]] != null ? String(E.meta.families[r[2]]) : '';
+  const spec = E.meta.specs[r[3]] != null ? String(E.meta.specs[r[3]]) : '';
+  const revitId = r[4] == null ? '' : String(r[4]);
+  const mnx = Math.min(r[5], r[8]);
+  const mxx = Math.max(r[5], r[8]);
+  const mny = Math.min(r[6], r[9]);
+  const mxy = Math.max(r[6], r[9]);
+  const mnz = Math.min(r[7], r[10]);
+  const mxz = Math.max(r[7], r[10]);
+  const shift = state.worldShift;
+  const fg = state.floorGroups.find((f) => f.key === floorKey);
+  const cat = state.categories.find((c) => c.code === catCode);
+  const sizeL = mxx - mnx;
+  const sizeW = mxz - mnz;
+  const sizeH = mxy - mny;
+  const centerDisplay = [
+    (mnx + mxx) / 2 - shift.x,
+    (mny + mxy) / 2,
+    (mnz + mxz) / 2 - shift.z,
+  ];
+  return {
+    index,
+    floorKey,
+    floorLabel: (fg && fg.label) || floorKey,
+    catCode,
+    catLabel: (cat && cat.label) || catCode,
+    family,
+    spec,
+    revitId,
+    size: [sizeL, sizeW, sizeH],
+    center: centerDisplay,
+    bboxWorld: [mnx, mny, mnz, mxx, mxy, mxz],
+    bboxDisplay: [mnx - shift.x, mny, mnz - shift.z, mxx - shift.x, mxy, mxz - shift.z],
+  };
+}
+
+function ensureHighlight() {
+  if (state.highlight) return state.highlight;
+  const group = new THREE.Group();
+  group.name = 'selection-highlight';
+  const box = new THREE.Box3Helper(new THREE.Box3(), 0xff8a1e);
+  box.material.depthTest = false;
+  box.material.transparent = true;
+  box.material.opacity = 0.95;
+  box.renderOrder = 20;
+  group.add(box);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0xff8a1e, transparent: true, opacity: 0.14, depthWrite: false,
+    side: THREE.DoubleSide,
+  });
+  const glow = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), glowMat);
+  glow.renderOrder = 19;
+  group.add(glow);
+  group.visible = false;
+  state.scene.add(group);
+  state.highlight = { group, box, glow };
+  return state.highlight;
+}
+
+function updateHighlight(info) {
+  const h = ensureHighlight();
+  if (!info) { h.group.visible = false; return; }
+  const b = info.bboxDisplay;
+  const pad = 0.012;
+  const box3 = new THREE.Box3(
+    new THREE.Vector3(b[0] - pad, b[1] - pad, b[2] - pad),
+    new THREE.Vector3(b[3] + pad, b[4] + pad, b[5] + pad),
+  );
+  h.box.box.copy(box3);
+  h.glow.position.copy(box3.getCenter(new THREE.Vector3()));
+  h.glow.scale.set(
+    Math.max(0.02, box3.max.x - box3.min.x),
+    Math.max(0.02, box3.max.y - box3.min.y),
+    Math.max(0.02, box3.max.z - box3.min.z),
+  );
+  h.group.visible = true;
+  applySelectionVisibility();
+}
+
+function applySelectionVisibility() {
+  const h = state.highlight;
+  const sel = state.selection;
+  if (!h) return;
+  if (!sel) { h.group.visible = false; return; }
+  const floorVisible = state.selectedFloor === 'all' || state.selectedFloor === sel.floorKey;
+  const catVisible = !!state.catVisible[sel.catCode];
+  h.group.visible = floorVisible && catVisible;
+}
+
+function fillInfoCard(info) {
+  if (!ui.infoCard) return;
+  if (!info) { ui.infoCard.hidden = true; return; }
+  ui.infoCard.hidden = false;
+  const sizeText = info.size.map((v) => v.toFixed(3)).join(' × ');
+  const centerText = info.center.map((v) => v.toFixed(3)).join(', ');
+  const rows = [
+    ['楼层', info.floorLabel],
+    ['类别', info.catLabel],
+    ['族名', info.family || '—'],
+    ['规格', info.spec || '—'],
+    ['尺寸 L×W×H', sizeText + ' m'],
+    ['中心坐标', centerText + ' m'],
+    ['Revit 元素 ID', info.revitId || '—'],
+  ];
+  ui.icList.innerHTML = rows.map((r) =>
+    '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('');
+}
+
+function selectElement(index) {
+  if (!state.elements.ready) return null;
+  const info = elementInfo(index);
+  if (!info) return null;
+  state.selection = info;
+  updateHighlight(info);
+  fillInfoCard(info);
+  if (window.innerWidth < 768 && ui.panel && !ui.panel.classList.contains('is-collapsed')) {
+    state.sheetTouched = true;
+    ui.panel.classList.add('is-collapsed');
+  }
+  return info;
+}
+
+function clearSelection() {
+  state.selection = null;
+  if (state.highlight) state.highlight.group.visible = false;
+  fillInfoCard(null);
+  return true;
+}
+
+function getSelection() {
+  const sel = state.selection;
+  if (!sel) return null;
+  return {
+    index: sel.index,
+    floorKey: sel.floorKey,
+    floorLabel: sel.floorLabel,
+    category: sel.catCode,
+    categoryLabel: sel.catLabel,
+    family: sel.family,
+    spec: sel.spec,
+    revitId: sel.revitId,
+    size: sel.size.map((v) => Number(v.toFixed(3))),
+    center: sel.center.map((v) => Number(v.toFixed(3))),
+    bboxWorld: sel.bboxWorld.map((v) => Number(v.toFixed(3))),
+  };
+}
+
+function selectionText(info) {
+  if (!info) return '';
+  const title = (state.manifest && state.manifest.title) || '';
+  return [
+    title, info.floorLabel, info.catLabel, info.family, info.spec,
+    'L×W×H=' + info.size.map((v) => v.toFixed(3)).join('×') + 'm',
+    '中心(' + info.center.map((v) => v.toFixed(3)).join(', ') + ')',
+    'RevitID=' + (info.revitId || '—'),
+  ].join(' | ');
+}
+
+function copySelection() {
+  const info = state.selection;
+  if (!info) return false;
+  const text = selectionText(info);
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(
+        () => toast('已复制构件信息', 2200),
+        () => fallbackCopy(text),
+      );
+      return true;
+    }
+  } catch (e) { /* ignore */ }
+  fallbackCopy(text);
+  return true;
+}
+
+function fallbackCopy(text) {
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast('已复制构件信息', 2200);
+  } catch (e) {
+    toast('复制失败，请手动选择信息文本');
+  }
+}
+
+let _raycaster = null;
+/** 按屏幕坐标点选构件，返回选中信息（无命中返回 null 并清除选中） */
+function pickAt(clientX, clientY) {
+  if (!state.elements.ready || !state.camera || !state.renderer) return null;
+  const rect = state.renderer.domElement.getBoundingClientRect();
+  const nx = ((clientX - rect.left) / rect.width) * 2 - 1;
+  const ny = -((clientY - rect.top) / rect.height) * 2 + 1;
+  if (!_raycaster) _raycaster = new THREE.Raycaster();
+  _raycaster.setFromCamera(new THREE.Vector2(nx, ny), state.camera);
+  const hits = _raycaster.intersectObjects(state.pickables, false);
+  if (!hits.length) { clearSelection(); return null; }
+  const hit = hits[0];
+  const shift = state.worldShift;
+  const wx = hit.point.x + shift.x;
+  const wy = hit.point.y;
+  const wz = hit.point.z + shift.z;
+  const floorKey = (hit.object.userData && hit.object.userData.floor) || null;
+  const idx = findElementAt(wx, wy, wz, floorKey);
+  if (idx < 0) { clearSelection(); return null; }
+  return selectElement(idx);
 }
 
 /* 地面 + 网格（随 bbox 生成，只建一次） */
@@ -1515,6 +2038,8 @@ function applyVisibility() {
   });
   if (state.grid) state.grid.visible = state.showGrid;
   applyLabelsVisibility();
+  applyEdgesVisibility();
+  applySelectionVisibility();
   updateFloorPanelState();
   updateCategoryPanelState();
   updateStatsBar();
@@ -1676,15 +2201,46 @@ function buildInfoPanel() {
     ['砌块合计', fmt(total.blocks) + ' 块'],
     ['几何量', '≈ ' + (state.triangles / 10000).toFixed(1) + ' 万面 · ' + state.meshCount + ' 批'],
     ['每块砌块标注', '<span id="infoLabels">' + labelStateText() + '</span>'],
+    ['标注范围', state.labels.family ? ('仅 ' + state.labels.family) : '全部砌块'],
+    ['砖边线 / 灰缝', '<span id="infoEdges">' + edgesStateText() + '</span>'],
+    ['构件点选', '<span id="infoPick">' + pickStateText() + '</span>'],
     ['单位 / 朝向', (m.unit || 'm') + ' / ' + (m.up || 'Y') + '-up'],
   ];
+  const rawKeys = { '每块砌块标注': 1, '砖边线 / 灰缝': 1, '构件点选': 1 };
   ui.infoList.innerHTML = rows.map((r) =>
-    '<div><dt>' + esc(r[0]) + '</dt><dd>' + (r[0] === '每块砌块标注' ? r[1] : esc(r[1])) + '</dd></div>').join('');
+    '<div><dt>' + esc(r[0]) + '</dt><dd>' + (rawKeys[r[0]] ? r[1] : esc(r[1])) + '</dd></div>').join('');
+}
+
+function edgesStateText() {
+  const E = state.edges;
+  if (!E.cfg) return '未配置';
+  if (!E.loaded) return E.error ? '未就绪' : '加载中';
+  return E.on ? '开' : '关';
+}
+
+function pickStateText() {
+  const E = state.elements;
+  if (E.ready) return '可用（单击构件）';
+  return E.error ? '不可用（elements.json 未就绪）' : '加载中';
 }
 
 function updateInfoDynamic() {
   const el = $('infoLabels');
   if (el) el.textContent = labelStateText();
+  const eel = $('infoEdges');
+  if (eel) eel.textContent = edgesStateText();
+  const pel = $('infoPick');
+  if (pel) pel.textContent = pickStateText();
+  if (ui.btnEdges) {
+    const E = state.edges;
+    const enabled = !!E.cfg;
+    ui.btnEdges.disabled = !enabled;
+    ui.btnEdges.style.opacity = enabled ? '1' : '.5';
+    ui.btnEdges.setAttribute('aria-pressed', (E.on && E.loaded) ? 'true' : 'false');
+    ui.btnEdges.title = !enabled ? '未配置砖边线层'
+      : (!E.loaded ? (E.error ? '砖边线资产未就绪' : '砖边线加载中')
+        : '显示 / 隐藏砌块边线与灰缝');
+  }
   if (ui.btnLabels) {
     const L = state.labels;
     const enabled = !!L.cfg && !L.invalid;
@@ -1802,7 +2358,33 @@ function bindButtons() {
   ui.btnShowAll.addEventListener('click', () => setShowAllFloors());
   ui.btnGrid.addEventListener('click', () => setGrid());
   ui.btnLabels.addEventListener('click', () => setLabels());
+  ui.btnEdges.addEventListener('click', () => setEdges());
   ui.loaderRetry.addEventListener('click', () => location.reload());
+  if (ui.icClose) ui.icClose.addEventListener('click', () => clearSelection());
+  if (ui.icCopy) ui.icCopy.addEventListener('click', () => copySelection());
+
+  // 点选：pointerup 时位移小、时间短才算点击（避免旋转/平移后误选）
+  const canvas = state.renderer.domElement;
+  canvas.addEventListener('pointerdown', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    state.pick.downX = e.clientX;
+    state.pick.downY = e.clientY;
+    state.pick.downTime = performance.now();
+    state.pick.dragging = false;
+  });
+  canvas.addEventListener('pointermove', (e) => {
+    if (Math.hypot(e.clientX - state.pick.downX, e.clientY - state.pick.downY) > 6) {
+      state.pick.dragging = true;
+    }
+  });
+  canvas.addEventListener('pointerup', (e) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const dt = performance.now() - state.pick.downTime;
+    const dist = Math.hypot(e.clientX - state.pick.downX, e.clientY - state.pick.downY);
+    if (dist <= 6 && dt <= 800) {
+      pickAt(e.clientX, e.clientY);
+    }
+  });
 
   const toggleSheet = () => {
     if (window.innerWidth >= 768) return;
@@ -1815,7 +2397,7 @@ function bindButtons() {
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { setFloor('all'); setClip(null); }
+    if (e.key === 'Escape') { setFloor('all'); setClip(null); clearSelection(); }
   });
 }
 
@@ -1864,7 +2446,24 @@ function stats() {
       invalid: state.labels.invalid,
       bounds: state.labels.bounds,
       filter: state.labels.filter,
+      family: state.labels.family || '',
     },
+    edges: {
+      configured: !!state.edges.cfg,
+      loaded: state.edges.loaded,
+      on: state.edges.on,
+      error: state.edges.error,
+      nodes: Object.keys(state.edges.nodesByFloor || {}),
+      visibleNodes: Object.entries(state.edges.nodesByFloor || {})
+        .filter(([, node]) => node.visible).map(([k]) => k),
+    },
+    elements: {
+      ready: state.elements.ready,
+      count: state.elements.count,
+      error: state.elements.error,
+      gridCells: state.elements.grid ? state.elements.grid.size : 0,
+    },
+    selection: getSelection(),
     clip: state.clipEnabled ? Number(state.clipY.toFixed(3)) : null,
     clipEnabled: state.clipEnabled,
     clipBounds: [Number(state.bbox.min.y.toFixed(3)), Number(state.bbox.max.y.toFixed(3))],
@@ -1892,6 +2491,7 @@ function exposeAPI() {
     model: state.model,
     manifest: state.manifest,
     labelsRoot: state.labels.root,
+    edgesRoot: state.edges.root,
     setFloor,
     setShowAllFloors,
     toggleCategory,
@@ -1899,7 +2499,12 @@ function exposeAPI() {
     setClip,
     setGrid,
     setLabels,
+    setEdges,
     resetView,
+    pickAt,
+    selectElement,
+    clearSelection,
+    getSelection,
     stats,
   };
   window.__viewerReady = true;
@@ -1929,10 +2534,12 @@ async function boot() {
     return;
   }
 
-  const { floorResults, labelGltf } = await loadAssets();
+  const { floorResults, labelGltf, edgeGltf, elementsJson } = await loadAssets();
   state.loadMs = performance.now() - t0;
   buildModel(floorResults);
   buildLabels(labelGltf);
+  buildEdges(edgeGltf);
+  buildElements(elementsJson);
   finalize();
   // 调试钩子：?debug=mat 时把门/窗材质参数写到 title，便于无头浏览器核对
   try {
