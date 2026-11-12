@@ -777,11 +777,15 @@ function getMaterial(key, code, sub) {
     const cat = state.categories.find((c) => c.code === code);
     color = (cat && cat.color) || '#b9c0c8';
   }
+  const seeThrough = (code === 'M' || code === 'W');   // 门、窗：半透明，便于看洞口后的排砖
   mat = new THREE.MeshStandardMaterial({
     color: new THREE.Color(color),
     roughness: 0.87,
     metalness: 0.02,
     side: THREE.DoubleSide,       // 剖切时保持双面可见
+    transparent: seeThrough,
+    opacity: seeThrough ? 0.32 : 1.0,
+    depthWrite: !seeThrough,
     clippingPlanes: [state.clipPlane],
     clipShadows: false,
   });
@@ -1929,6 +1933,19 @@ async function boot() {
   buildModel(floorResults);
   buildLabels(labelGltf);
   finalize();
+  // 调试钩子：?debug=mat 时把门/窗材质参数写到 title，便于无头浏览器核对
+  try {
+    if (new URLSearchParams(location.search).get('debug') === 'mat') {
+      const info = [];
+      state.model.traverse((o) => {
+        if (o.isMesh && o.material && /(^|_)mat_(M|W)(_|$)/.test(o.material.name || '')) {
+          info.push({ n: o.material.name, transparent: o.material.transparent,
+            opacity: o.material.opacity, depthWrite: o.material.depthWrite, visible: o.visible });
+        }
+      });
+      document.title = 'MATDBG ' + JSON.stringify(info.slice(0, 6));
+    }
+  } catch (e) { /* ignore */ }
 }
 
 if (document.readyState === 'loading') {
