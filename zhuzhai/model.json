@@ -1,0 +1,183 @@
+{
+ "id": "zhuzhai",
+ "title": "住宅楼 · 砌体排砖",
+ "subtitle": "Revit 2024 排砖模型 · 分层 + 砌块尺寸标注",
+ "generated": "2026-11-12",
+ "unit": "m",
+ "up": "Y",
+ "source": {
+  "rvt": "打印交付版排砖总文件常规模型+结构+门窗-备份文件-2026-7-25构造柱更新-2024revit.rvt",
+  "ifc": "zhuzhai.ifc"
+ },
+ "bbox": {
+  "min": [
+   -0.075,
+   -0.065,
+   -0.075
+  ],
+  "max": [
+   1661.916,
+   433.756,
+   13.45
+  ]
+ },
+ "floors": [
+  {
+   "key": "F01",
+   "label": "标高 5.950",
+   "elev": 5.95,
+   "height": null,
+   "name": "结构层 5.950",
+   "file": "assets/f01.glb",
+   "counts": {
+    "Q": 4,
+    "QT": 52,
+    "Z": 102
+   },
+   "blocks": 0,
+   "sizeMB": 0.19,
+   "labelQuads": 0
+  },
+  {
+   "key": "F02",
+   "label": "标高 8.950",
+   "elev": 8.95,
+   "height": null,
+   "name": "排砖标准层 8.950",
+   "file": "assets/f02.glb",
+   "counts": {
+    "B": 115,
+    "L": 413,
+    "M": 84,
+    "Q": 401,
+    "T100": 12946,
+    "QC": 17200,
+    "T200": 2582,
+    "T250": 1630,
+    "T300": 42,
+    "QT": 489,
+    "W": 100,
+    "Z": 225
+   },
+   "blocks": 17200,
+   "sizeMB": 1.39,
+   "labelQuads": 34346
+  },
+  {
+   "key": "F03",
+   "label": "标高 11.950",
+   "elev": 11.95,
+   "height": null,
+   "name": "结构层 11.950",
+   "file": "assets/f03.glb",
+   "counts": {
+    "B": 111,
+    "L": 160,
+    "T200": 24,
+    "QC": 24,
+    "QT": 10
+   },
+   "blocks": 24,
+   "sizeMB": 0.03,
+   "labelQuads": 48
+  }
+ ],
+ "categories": [
+  {
+   "code": "B",
+   "label": "板",
+   "color": "#a8a29a"
+  },
+  {
+   "code": "L",
+   "label": "梁",
+   "color": "#8f949b"
+  },
+  {
+   "code": "M",
+   "label": "门",
+   "color": "#6b7c93"
+  },
+  {
+   "code": "Q",
+   "label": "墙",
+   "color": "#b8b1a4"
+  },
+  {
+   "code": "QC",
+   "label": "砌块",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "QT",
+   "label": "其他",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "W",
+   "label": "窗",
+   "color": "#4f7c94"
+  },
+  {
+   "code": "Z",
+   "label": "柱",
+   "color": "#7d858e"
+  }
+ ],
+ "thicknessGroups": [
+  {
+   "code": "T100",
+   "thickness": 100,
+   "label": "墙厚 100",
+   "color": "#e3c79c",
+   "count": 12946
+  },
+  {
+   "code": "T200",
+   "thickness": 200,
+   "label": "墙厚 200",
+   "color": "#b98f5c",
+   "count": 2606
+  },
+  {
+   "code": "T250",
+   "thickness": 250,
+   "label": "墙厚 250",
+   "color": "#9a7444",
+   "count": 1630
+  },
+  {
+   "code": "T300",
+   "thickness": 300,
+   "label": "墙厚 300",
+   "color": "#7d5c33",
+   "count": 42
+  }
+ ],
+ "labels": {
+  "file": "assets/labels.glb",
+  "textHeight": 0.15,
+  "defaultOn": true,
+  "lodDistance": 16.0,
+  "nodes": {
+   "F02": "L_F02",
+   "F03": "L_F03"
+  }
+ },
+ "stats": {
+  "elements": 19490,
+  "blocks": 17224,
+  "floors": 3,
+  "byCategory": {
+   "Q": 405,
+   "QT": 551,
+   "Z": 327,
+   "B": 226,
+   "L": 573,
+   "M": 84,
+   "QC": 17224,
+   "W": 100
+  },
+  "thicknessKinds": 4
+ }
+}

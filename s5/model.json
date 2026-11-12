@@ -1,0 +1,233 @@
+{
+ "id": "s5",
+ "title": "S5 幼儿园 · 砌体排砖",
+ "subtitle": "Revit 2024 排砖模型 · 分层 + 砌块尺寸标注",
+ "generated": "2026-11-12",
+ "unit": "m",
+ "up": "Y",
+ "source": {
+  "rvt": "S5幼儿园-排砖 -revit2024.rvt",
+  "ifc": "S5幼儿园-排砖 -revit2024.ifc"
+ },
+ "bbox": {
+  "min": [
+   -4.388,
+   -198.125,
+   -3.05
+  ],
+  "max": [
+   46.175,
+   0.304,
+   15.031
+  ]
+ },
+ "floors": [
+  {
+   "key": "F01",
+   "label": "一层",
+   "elev": -0.05,
+   "height": 3.9,
+   "name": "标高 -0.050（-0.050~3.850）",
+   "file": "assets/f01.glb",
+   "counts": {
+    "B": 167,
+    "L": 298,
+    "M": 41,
+    "Q": 130,
+    "T100": 6939,
+    "QC": 12289,
+    "T150": 295,
+    "T200": 3835,
+    "T250": 1220,
+    "QT": 527,
+    "W": 32,
+    "Z": 204
+   },
+   "blocks": 12289,
+   "sizeMB": 1.47,
+   "labelQuads": 24570
+  },
+  {
+   "key": "F02",
+   "label": "二层",
+   "elev": 3.85,
+   "height": 3.9,
+   "name": "标高 3.850（3.850~7.750）",
+   "file": "assets/f02.glb",
+   "counts": {
+    "B": 74,
+    "L": 180,
+    "M": 24,
+    "Q": 120,
+    "T100": 6970,
+    "QC": 12046,
+    "T150": 288,
+    "T200": 3538,
+    "T250": 1250,
+    "QT": 220,
+    "W": 33,
+    "Z": 175
+   },
+   "blocks": 12046,
+   "sizeMB": 0.92,
+   "labelQuads": 24086
+  },
+  {
+   "key": "F03",
+   "label": "三层",
+   "elev": 7.75,
+   "height": 3.65,
+   "name": "标高 7.750（7.750~11.400）",
+   "file": "assets/f03.glb",
+   "counts": {
+    "B": 31,
+    "L": 164,
+    "M": 11,
+    "Q": 51,
+    "T0": 5,
+    "QC": 5969,
+    "T100": 3096,
+    "T200": 1892,
+    "T250": 976,
+    "QT": 152,
+    "W": 20,
+    "Z": 111
+   },
+   "blocks": 5969,
+   "sizeMB": 0.46,
+   "labelQuads": 11856
+  },
+  {
+   "key": "F04",
+   "label": "屋面层",
+   "elev": 11.4,
+   "height": 3.08,
+   "name": "标高 11.400（女儿墙/出屋面机房）",
+   "file": "assets/f04.glb",
+   "counts": {
+    "B": 3,
+    "L": 33,
+    "M": 1,
+    "Q": 13,
+    "T100": 303,
+    "QC": 967,
+    "T150": 1,
+    "T200": 491,
+    "T250": 172,
+    "QT": 53,
+    "W": 1,
+    "Z": 34
+   },
+   "blocks": 967,
+   "sizeMB": 0.09,
+   "labelQuads": 1928
+  }
+ ],
+ "categories": [
+  {
+   "code": "B",
+   "label": "板",
+   "color": "#a8a29a"
+  },
+  {
+   "code": "L",
+   "label": "梁",
+   "color": "#8f949b"
+  },
+  {
+   "code": "M",
+   "label": "门",
+   "color": "#6b7c93"
+  },
+  {
+   "code": "Q",
+   "label": "墙",
+   "color": "#b8b1a4"
+  },
+  {
+   "code": "QC",
+   "label": "砌块",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "QT",
+   "label": "其他",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "W",
+   "label": "窗",
+   "color": "#4f7c94"
+  },
+  {
+   "code": "Z",
+   "label": "柱",
+   "color": "#7d858e"
+  }
+ ],
+ "thicknessGroups": [
+  {
+   "code": "T0",
+   "thickness": 0,
+   "label": "墙厚 0",
+   "color": "#b5ada0",
+   "count": 5
+  },
+  {
+   "code": "T100",
+   "thickness": 100,
+   "label": "墙厚 100",
+   "color": "#e3c79c",
+   "count": 17308
+  },
+  {
+   "code": "T150",
+   "thickness": 150,
+   "label": "墙厚 150",
+   "color": "#d0ae7b",
+   "count": 584
+  },
+  {
+   "code": "T200",
+   "thickness": 200,
+   "label": "墙厚 200",
+   "color": "#b98f5c",
+   "count": 9756
+  },
+  {
+   "code": "T250",
+   "thickness": 250,
+   "label": "墙厚 250",
+   "color": "#9a7444",
+   "count": 3618
+  }
+ ],
+ "labels": {
+  "file": "assets/labels.glb",
+  "textHeight": 0.15,
+  "defaultOn": true,
+  "lodDistance": 16.0,
+  "nodes": {
+   "F01": "L_F01",
+   "F02": "L_F02",
+   "F03": "L_F03",
+   "F04": "L_F04"
+  }
+ },
+ "stats": {
+  "elements": 34174,
+  "blocks": 31271,
+  "floors": 4,
+  "byCategory": {
+   "B": 275,
+   "L": 675,
+   "M": 77,
+   "Q": 314,
+   "QC": 31271,
+   "QT": 952,
+   "W": 86,
+   "Z": 524
+  },
+  "thicknessKinds": 5
+ }
+}

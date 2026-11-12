@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23111827%22/%3E%3Crect x=%228%22 y=%223%22 width=%226%22 height=%223%22 fill=%22%23c9b28a%22/%3E%3Crect x=%223%22 y=%228%22 width=%226%22 height=%223%22 fill=%22%23c9b28a%22/%3E%3C/svg%3E">
+<meta name="description" content="江峡三路集镇迁建区（二期一标段）砌体排砖三维展示 · S5 幼儿园 / 住宅楼 · 纯静态离线页面">
+<title>江峡三路集镇迁建区（二期一标段）· 砌体排砖三维展示</title>
+<style>
+  :root {
+    --ink: #111827;
+    --ink-2: #1f2937;
+    --muted: #6b7280;
+    --muted-2: #9ca3af;
+    --brick: #c9b28a;
+    --brick-2: #e2cfae;
+    --brick-deep: #9c7f52;
+    --paper: #f8fafc;
+    --slate: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    color: var(--paper);
+    background:
+      radial-gradient(1200px 620px at 12% -12%, #26364d 0%, rgba(38, 54, 77, 0) 62%),
+      radial-gradient(980px 560px at 104% -4%, #1c2c42 0%, rgba(28, 44, 66, 0) 58%),
+      linear-gradient(180deg, #0c1320 0%, #111827 42%, #0b1220 100%);
+    font-family: "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC",
+      "Source Han Sans SC", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, .022) 0 1px, transparent 1px 34px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, .018) 0 1px, transparent 1px 34px);
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, .8), transparent 72%);
+  }
+
+  .wrap {
+    position: relative;
+    max-width: 1120px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: clamp(28px, 5vw, 64px) clamp(16px, 4vw, 40px) 34px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(26px, 4vw, 44px);
+  }
+
+  /* ---------------- 头部 ---------------- */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(201, 178, 138, .34);
+    background: rgba(201, 178, 138, .09);
+    color: var(--brick-2);
+    font-size: 11px;
+    letter-spacing: .16em;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 1px;
+    background: var(--brick);
+  }
+  h1 {
+    margin: 18px 0 0;
+    font-size: clamp(23px, 3.3vw, 38px);
+    line-height: 1.34;
+    font-weight: 700;
+    letter-spacing: .5px;
+    color: #f8fafc;
+  }
+  h1 .accent {
+    display: inline-block;
+    margin-top: 4px;
+    color: var(--brick-2);
+    position: relative;
+  }
+  h1 .accent::after {
+    content: "";
+    position: absolute;
+    left: 2px; right: 4px; bottom: -8px;
+    height: 3px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--brick), rgba(201, 178, 138, 0));
+  }
+  .lead {
+    margin: 22px 0 0;
+    max-width: 720px;
+    color: var(--slate);
+    font-size: 13.5px;
+    line-height: 1.8;
+  }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    border: 1px solid rgba(148, 163, 184, .24);
+    background: rgba(148, 163, 184, .07);
+    color: #cbd5e1;
+    font-size: 11.5px;
+  }
+  .tag::before {
+    content: "";
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--brick);
+  }
+
+  /* ---------------- 卡片 ---------------- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+  .card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 22px 20px 26px;
+    border-radius: 18px;
+    background: linear-gradient(160deg, #ffffff 0%, #f6f3ec 100%);
+    color: var(--ink);
+    text-decoration: none;
+    border: 1px solid rgba(255, 255, 255, .55);
+    box-shadow: 0 20px 46px rgba(2, 6, 23, .42);
+    overflow: hidden;
+    transition: transform .22s ease, box-shadow .22s ease;
+  }
+  .card::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 5px;
+    background: linear-gradient(180deg, var(--brick), var(--brick-deep));
+  }
+  .card::after {
+    content: "";
+    position: absolute;
+    right: -64px; top: -64px;
+    width: 186px; height: 186px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201, 178, 138, .24), rgba(201, 178, 138, 0) 70%);
+    pointer-events: none;
+  }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 28px 58px rgba(2, 6, 23, .52); }
+  .card:focus-visible { outline: 2px solid var(--brick); outline-offset: 3px; }
+
+  .card-head { display: flex; align-items: center; gap: 12px; }
+  .badge {
+    flex: 0 0 auto;
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    background: var(--ink-2);
+    color: var(--brick-2);
+    display: grid;
+    place-items: center;
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: .04em;
+  }
+  .kicker { font-size: 10px; letter-spacing: .16em; color: var(--brick-deep); font-weight: 700; }
+  .card h2 { margin: 2px 0 0; font-size: 19px; font-weight: 700; letter-spacing: .3px; }
+  .arrow {
+    margin-left: auto;
+    font-size: 17px;
+    color: var(--brick-deep);
+    transition: transform .2s ease;
+  }
+  .card:hover .arrow { transform: translate(2px, -2px); }
+
+  .card-desc {
+    margin: 14px 0 16px;
+    color: var(--muted);
+    font-size: 12.5px;
+    line-height: 1.7;
+  }
+  .card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 12px 0;
+    border-top: 1px dashed rgba(17, 24, 39, .13);
+    border-bottom: 1px dashed rgba(17, 24, 39, .13);
+  }
+  .card-stats div { display: flex; flex-direction: column; gap: 2px; }
+  .card-stats dt { font-size: 10px; letter-spacing: .08em; color: var(--muted-2); }
+  .card-stats dd {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink-2);
+    font-variant-numeric: tabular-nums;
+  }
+  .card-stats dd.pending { color: #d6d3cd; }
+
+  .card-cta {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--ink-2);
+  }
+  .card-cta .line {
+    flex: 1 1 auto;
+    height: 1px;
+    background: rgba(17, 24, 39, .14);
+  }
+  .card-cta .go { color: var(--brick-deep); }
+
+  /* ---------------- 功能说明 ---------------- */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 26px;
+  }
+  .feat { border-top: 1px solid rgba(148, 163, 184, .18); padding-top: 16px; }
+  .feat-no { font-size: 10px; letter-spacing: .18em; color: var(--brick); font-weight: 700; }
+  .feat h3 { margin: 8px 0 6px; font-size: 13.5px; font-weight: 600; color: #e2e8f0; letter-spacing: .3px; }
+  .feat p { margin: 0; font-size: 11.5px; line-height: 1.75; color: #8b9bb0; }
+
+  /* ---------------- 页脚 ---------------- */
+  .site-footer {
+    margin-top: auto;
+    padding-top: 22px;
+    border-top: 1px solid rgba(148, 163, 184, .16);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    color: var(--slate);
+    font-size: 11.5px;
+    line-height: 1.75;
+  }
+  .src-title { color: #e2e8f0; font-size: 12px; font-weight: 600; }
+  .src ul {
+    list-style: none;
+    margin: 7px 0 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+  .src li { position: relative; padding-left: 11px; color: #cbd5e1; }
+  .src li::before {
+    content: "";
+    position: absolute;
+    left: 0; top: 7px;
+    width: 4px; height: 4px;
+    border-radius: 1px;
+    background: var(--brick);
+  }
+  .foot-meta { text-align: right; color: #94a3b8; }
+  .foot-meta b { color: #cbd5e1; font-weight: 600; }
+  .foot-note { margin-top: 6px; color: #64748b; font-size: 10.5px; }
+
+  @media (max-width: 760px) {
+    .cards { grid-template-columns: 1fr; gap: 16px; }
+    .features { grid-template-columns: 1fr; gap: 18px; }
+    .lead { font-size: 12.5px; }
+    .card-stats dd { font-size: 16px; }
+    .site-footer { flex-direction: column; gap: 14px; }
+    .foot-meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">REVIT 2024 · 砌体排砖</div>
+    <h1>
+      江峡三路集镇迁建区（二期一标段）<br>
+      <span class="accent">砌体排砖三维展示</span>
+    </h1>
+    <p class="lead">
+      按层展示 Revit 排砖模型，支持楼层单独查看、构件类别与墙厚分色开关、砌块长×厚×高标注、
+      沿竖向实时剖切。纯静态页面，无需安装插件，手机浏览器可直接打开。
+    </p>
+    <div class="tags">
+      <span class="tag">离线可运行</span>
+      <span class="tag">无需插件</span>
+      <span class="tag">手机 / 平板适配</span>
+      <span class="tag">每层独立 GLB</span>
+    </div>
+  </header>
+
+  <main class="cards">
+    <a class="card" href="s5/" data-model="s5/model.json" data-id="s5">
+      <div class="card-head">
+        <span class="badge">S5</span>
+        <div>
+          <div class="kicker">幼儿园单体</div>
+          <h2>S5 幼儿园</h2>
+        </div>
+        <span class="arrow">↗</span>
+      </div>
+      <p class="card-desc">幼儿园砌体排砖模型 · 按层展示，砌块按墙厚分色，可显示每块砌块长×厚×高标注，逐层核查排砖与洞口关系。</p>
+      <dl class="card-stats">
+        <div><dt>楼层</dt><dd data-stat="floors" class="pending">—</dd></div>
+        <div><dt>构件</dt><dd data-stat="elements" class="pending">—</dd></div>
+        <div><dt>砌块</dt><dd data-stat="blocks" class="pending">—</dd></div>
+      </dl>
+      <span class="card-cta">进入三维查看 <span class="line"></span><span class="go">→</span></span>
+    </a>
+
+    <a class="card" href="zhuzhai/" data-model="zhuzhai/model.json" data-id="zhuzhai">
+      <div class="card-head">
+        <span class="badge">住宅</span>
+        <div>
+          <div class="kicker">住宅楼单体</div>
+          <h2>住宅楼</h2>
+        </div>
+        <span class="arrow">↗</span>
+      </div>
+      <p class="card-desc">住宅楼砌体排砖模型 · 按层展示，支持剖切查看墙体内排砖与构造柱、圈梁位置，砌块按墙厚分色并可开关尺寸标注。</p>
+      <dl class="card-stats">
+        <div><dt>楼层</dt><dd data-stat="floors" class="pending">—</dd></div>
+        <div><dt>构件</dt><dd data-stat="elements" class="pending">—</dd></div>
+        <div><dt>砌块</dt><dd data-stat="blocks" class="pending">—</dd></div>
+      </dl>
+      <span class="card-cta">进入三维查看 <span class="line"></span><span class="go">→</span></span>
+    </a>
+  </main>
+
+  <section class="features">
+    <div class="feat">
+      <span class="feat-no">01</span>
+      <h3>按层查看</h3>
+      <p>单击楼层只看该层，再点同一层取消；楼层行显示层高与标高，顶部统计实时更新可见楼层与构件数。</p>
+    </div>
+    <div class="feat">
+      <span class="feat-no">02</span>
+      <h3>墙厚分色 · 砌块标注</h3>
+      <p>砌块按墙厚分色并可逐墙厚开关；每块砌块可显示长×厚×高标注（远景自动隐藏，避免糊成一片）。</p>
+    </div>
+    <div class="feat">
+      <span class="feat-no">03</span>
+      <h3>竖向剖切</h3>
+      <p>拖动滑块沿高度剖切模型，查看墙内排砖与构造柱、圈梁关系，可随时一键关闭剖切。</p>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="src">
+      <div class="src-title">模型数据来源</div>
+      <ul>
+        <li data-id="s5">S5幼儿园-排砖 -revit2024.rvt</li>
+        <li data-id="zhuzhai">打印交付版排砖总文件常规模型+结构+门窗-备份文件-2026-7-25构造柱更新-2024revit.rvt</li>
+      </ul>
+    </div>
+    <div class="foot-meta">
+      <div>导出日期 <b id="genDate">—</b> · 本页离线可运行 · three.js r160</div>
+      <div class="foot-note">本页面为施工交付用技术展示，模型与明细以 Revit 源文件为准。</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // 从 model.json 读取真实统计（不可用时保留占位并标记）
+  (async function () {
+    const cards = document.querySelectorAll('[data-model]');
+    const setStat = (card, key, value) => {
+      const el = card.querySelector('[data-stat="' + key + '"]');
+      if (!el || value == null) return;
+      el.textContent = typeof value === 'number' ? value.toLocaleString('zh-CN') : value;
+      el.classList.remove('pending');
+    };
+    for (const card of cards) {
+      try {
+        const res = await fetch(card.dataset.model, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const m = await res.json();
+        const stats = m.stats || {};
+        const floors = Array.isArray(m.floors) ? m.floors.length : stats.floors;
+        setStat(card, 'floors', floors);
+        setStat(card, 'elements', stats.elements);
+        setStat(card, 'blocks', stats.blocks);
+        if (m.generated) document.getElementById('genDate').textContent = m.generated;
+        const rvt = m.source && m.source.rvt;
+        if (rvt) {
+          const li = document.querySelector('.src li[data-id="' + card.dataset.id + '"]');
+          if (li) li.textContent = rvt;
+        }
+      } catch (err) {
+        // 离线直开 file:// 或资产未就位时保持占位符
+        console.warn('[index] model.json 读取失败', card.dataset.model, err);
+      }
+    }
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect width=%2216%22 height=%2216%22 rx=%223%22 fill=%22%23111827%22/%3E%3Crect x=%228%22 y=%223%22 width=%226%22 height=%223%22 fill=%22%23c9b28a%22/%3E%3Crect x=%223%22 y=%228%22 width=%226%22 height=%223%22 fill=%22%23c9b28a%22/%3E%3C/svg%3E">
+<meta name="description" content="S5 幼儿园砌体排砖三维模型 · 按层展示 · 楼层筛选 / 类别开关 / 剖切">
+<title>S5 幼儿园 · 砌体排砖三维展示</title>
+<link rel="stylesheet" href="../common/viewer.css">
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  window.VIEWER_CONFIG = {
+    manifest: 'model.json',
+    footer: { rvt: 'S5幼儿园-排砖 -revit2024.rvt' }
+  };
+</script>
+
+<script type="importmap">
+  { "imports": { "three": "../lib/three.module.js" } }
+</script>
+
+<script type="module" src="../common/viewer.js"></script>
+</body>
+</html>
