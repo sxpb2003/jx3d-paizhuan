@@ -418,5 +418,29 @@
     }
   })();
 </script>
-</body>
+<script>
+/* 自动更新检查：部署后 version.txt 变化则自动刷新本页（避免看到旧页面） */
+(function () {
+  var KEY = 'sz_ver';
+  function check() {
+    fetch('version.txt?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
+      return r.ok ? r.text() : null;
+    }).then(function (v) {
+      if (!v) return;
+      v = String(v).trim();
+      if (!v) return;
+      var cur = null;
+      try { cur = localStorage.getItem(KEY); } catch (e) {}
+      if (cur && cur !== v) {
+        try { localStorage.setItem(KEY, v); } catch (e) {}
+        location.reload();
+      } else if (!cur) {
+        try { localStorage.setItem(KEY, v); } catch (e) {}
+      }
+    }).catch(function () { /* ignore */ });
+  }
+  check();
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) check(); });
+})();
+</script></body>
 </html>

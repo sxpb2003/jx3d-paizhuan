@@ -19,6 +19,45 @@ import { GLTFLoader } from '../lib/GLTFLoader.js';
 import { DRACOLoader } from '../lib/DRACOLoader.js';
 
 const CFG = window.VIEWER_CONFIG || {};
+/* ---------- 版本号：用于绕开 CDN/浏览器缓存，实现"改完刷新即最新" ---------- */
+const VERSION_URL = 'version.txt';
+let ASSET_VER = 'dev';
+async function loadAssetVersion() {
+  try {
+    const r = await fetch(VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' });
+    if (r.ok) {
+      const txt = (await r.text()).trim();
+      if (txt) ASSET_VER = txt;
+    }
+  } catch (e) { /* 离线或不存在时忽略 */ }
+}
+function withVer(url) {
+  if (!ASSET_VER || ASSET_VER === 'dev') return url;
+  try {
+    const u = new URL(url, location.href);
+    u.searchParams.set('v', ASSET_VER);
+    return u.href;
+  } catch (e) { return url; }
+}
+/** 页面重新获得焦点 / 每 2 分钟检查一次版本，有新版本自动刷新 */
+function watchAssetVersion() {
+  let cur = ASSET_VER;
+  const check = async () => {
+    try {
+      const r = await fetch(VERSION_URL + '?t=' + Date.now(), { cache: 'no-store' });
+      if (!r.ok) return;
+      const v = (await r.text()).trim();
+      if (v && v !== cur) {
+        cur = v;
+        try { toast('检测到新版本，正在刷新…', 2500); } catch (e) {}
+        setTimeout(() => location.reload(), 1000);
+      }
+    } catch (e) { /* ignore */ }
+  };
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+  setInterval(check, 120000);
+}
+
 const MANIFEST_URL = CFG.manifest || 'model.json';
 const MANIFEST_ABS = new URL(MANIFEST_URL, location.href);
 const BASE_URL = new URL('./', MANIFEST_ABS);
@@ -412,7 +451,7 @@ function onResize() {
  * 三、数据 / 加载
  * ============================================================ */
 async function fetchManifest() {
-  const res = await fetch(MANIFEST_ABS.href, { cache: 'no-store' });
+  const res = await fetch(withVer(MANIFEST_ABS.href), { cache: 'no-store' });
   if (!res.ok) throw new Error('HTTP ' + res.status);
   return res.json();
 }
@@ -481,7 +520,7 @@ function renderFooter(rvt, generated) {
 
 /** 带字节进度的 fetch，返回 ArrayBuffer */
 async function fetchBuffer(url, onProgress) {
-  const res = await fetch(url, { cache: 'no-store' });
+  const res = await fetch(withVer(url), { cache: 'no-store' });
   if (!res.ok) throw new Error('HTTP ' + res.status + ' · ' + decodeURIComponent(url.split('/').pop()));
   const total = Number(res.headers.get('content-length')) || 0;
   if (!res.body || !total) {
@@ -2614,7 +2653,9 @@ async function boot() {
   const t0 = performance.now();
   state.loadStart = t0;
   try {
-    state.manifest = await fetchManifest();
+    await loadAssetVersion();
+  watchAssetVersion();
+  state.manifest = await fetchManifest();
   } catch (err) {
     const msg = err && err.message ? err.message : String(err);
     failLoader('无法读取 model.json（' + msg + '）：请确认 model.json 已就位，' +
