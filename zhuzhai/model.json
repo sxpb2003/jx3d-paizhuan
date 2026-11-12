@@ -11,9 +11,9 @@
  },
  "bbox": {
   "min": [
-   -0.075,
-   -0.065,
-   -0.075
+   1633.516,
+   264.508,
+   5.95
   ],
   "max": [
    1661.916,
@@ -31,11 +31,10 @@
    "file": "assets/f01.glb",
    "counts": {
     "Q": 4,
-    "QT": 52,
     "Z": 102
    },
    "blocks": 0,
-   "sizeMB": 0.19,
+   "sizeMB": 0.01,
    "labelQuads": 0
   },
   {
@@ -165,17 +164,17 @@
   }
  },
  "stats": {
-  "elements": 19490,
+  "elements": 19438,
   "blocks": 17224,
   "floors": 3,
   "byCategory": {
    "Q": 405,
-   "QT": 551,
    "Z": 327,
    "B": 226,
    "L": 573,
    "M": 84,
    "QC": 17224,
+   "QT": 499,
    "W": 100
   },
   "thicknessKinds": 4

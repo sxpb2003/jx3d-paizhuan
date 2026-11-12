@@ -804,10 +804,26 @@ function buildModel(results) {
   });
   if (!baked.length) return;
 
+  // 选“主体锚点”：不是简单取顶点最多的块——某些类别块里可能混入原点原型，
+  // 包围盒会被撑到几百米。这里先算所有块的包围盒对角线，取中位数，
+  // 只把“尺寸正常”的块作为候选，再从中选顶点数最多的（通常是砌块主墙）。
+  const diags = [];
+  baked.forEach((item) => {
+    item.buckets.forEach((b) => {
+      if (!b.count || !b.bmin || !Number.isFinite(b.bmin[0])) return;
+      const d = Math.hypot(b.bmax[0] - b.bmin[0], b.bmax[1] - b.bmin[1], b.bmax[2] - b.bmin[2]);
+      b.diag = d;
+      diags.push(d);
+    });
+  });
+  diags.sort((x, y) => x - y);
+  const medianDiag = diags.length ? diags[Math.floor(diags.length / 2)] : 1;
+  const diagLimit = Math.max(medianDiag * 2.5, 5);
   let anchor = null;
   baked.forEach((item) => {
     item.buckets.forEach((b) => {
       if (!b.count || !b.bmin || !Number.isFinite(b.bmin[0])) return;
+      if (b.diag > diagLimit) return; // 疑似混入原型的块，不参与锚点竞争
       // 用顶点数选主体（真实资产每类别是合并后的单个节点，count 恒为 1）
       if (!anchor || b.positions.length > anchor.positions.length) anchor = b;
     });
