@@ -109,6 +109,7 @@ const APP_TEMPLATE = `
     <dl class="ic-list" id="icList"></dl>
     <div class="ic-actions">
       <button class="btn btn-sm" id="icCopy" type="button">复制信息</button>
+      <button class="btn btn-sm btn-danger" id="icHide" type="button" title="从模型中永久隐藏该构件（仅本地版）">隐藏此构件</button>
       <span class="ic-hint">点空白处 / Esc 取消</span>
     </div>
   </aside>
@@ -227,7 +228,7 @@ function buildDOM() {
     'panel', 'sheetHandle', 'floorList', 'catList',
     'clipValue', 'clipState', 'clipRange', 'clipMin', 'clipMax',
     'btnClipOff', 'btnReset', 'btnResetTop', 'btnShowAll', 'btnGrid', 'btnLabels', 'btnEdges',
-    'infoCard', 'icList', 'icClose', 'icCopy',
+    'infoCard', 'icList', 'icClose', 'icCopy', 'icHide',
     'infoList', 'metaInline', 'metaFooter', 'toast', 'loader', 'loaderBar', 'loaderPct',
     'loaderStatus', 'loaderProject', 'loaderRetry',
   ].forEach((id) => { ui[id] = $(id); });
@@ -1706,6 +1707,51 @@ function selectionText(info) {
   ].join(' | ');
 }
 
+function hideSelectedElement() {
+  const info = state.selection;
+  if (!info) return false;
+  const isLocal = /(^|\.)(localhost|127\.0\.0\.1)$/.test(location.hostname);
+  if (!isLocal) { toast('隐藏构件只在本地版可用（线上版请把 Revit 元素 ID 发我）', 3200); return false; }
+  if (!info.revitId) { toast('该构件没有 Revit 元素 ID，无法加入排除清单', 3000); return false; }
+  fetch('/__exclude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ page: location.pathname, revitId: info.revitId }),
+  }).then(function (r) { return r.json(); }).then(function (j) {
+    if (j && j.state === 'busy') {
+      toast('已有重建任务在进行，稍后会自动刷新', 4000);
+      pollRebuild();
+      return;
+    }
+    toast('已加入排除清单，正在后台重建模型（约 3~8 分钟），完成后自动刷新', 6000);
+    pollRebuild();
+  }).catch(function () {
+    toast('本地服务没响应：请确认本地版服务在运行', 4000);
+  });
+  return true;
+}
+
+function pollRebuild() {
+  let tries = 0;
+  const timer = setInterval(function () {
+    tries += 1;
+    fetch('/__exclude_status', { cache: 'no-store' })
+      .then(function (r) { return r.json(); })
+      .then(function (s) {
+        if (s && s.state === 'done') {
+          clearInterval(timer);
+          toast('重建完成，正在刷新…', 3000);
+          setTimeout(function () { location.reload(); }, 900);
+        } else if (s && s.state === 'error') {
+          clearInterval(timer);
+          toast('重建失败：' + (s.log || '').slice(-200), 8000);
+        }
+      })
+      .catch(function () { /* ignore */ });
+    if (tries > 240) clearInterval(timer);
+  }, 5000);
+}
+
 function copySelection() {
   const info = state.selection;
   if (!info) return false;
@@ -2403,6 +2449,7 @@ function bindButtons() {
   ui.btnShowAll.addEventListener('click', () => setShowAllFloors());
   ui.btnGrid.addEventListener('click', () => setGrid());
   ui.btnLabels.addEventListener('click', () => setLabels());
+  if (ui.icHide) ui.icHide.addEventListener('click', () => hideSelectedElement());
   ui.btnEdges.addEventListener('click', () => setEdges());
   ui.loaderRetry.addEventListener('click', () => location.reload());
   if (ui.icClose) ui.icClose.addEventListener('click', () => clearSelection());
@@ -2587,6 +2634,14 @@ async function boot() {
   buildEdges(edgeGltf);
   buildElements(elementsJson);
   finalize();
+  // 深链接：?floor=<楼层key> 打开即只显示该层
+  try {
+    const wantFloor = new URLSearchParams(location.search).get('floor');
+    if (wantFloor) {
+      const f = state.floors.find((x) => String(x.key).toUpperCase() === wantFloor.toUpperCase());
+      if (f) setFloor(f.key);
+    }
+  } catch (e) { /* ignore */ }
   // 深链接：?el=<RevitID> 打开即自动选中该构件（便于把链接发给别人核对）
   try {
     const wantEl = new URLSearchParams(location.search).get('el');

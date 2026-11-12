@@ -825,3 +825,7 @@ canvas#gl {
   .panel { max-height: 84vh; }
   .panel-scroll { max-height: calc(84vh - 56px); }
 }
+
+/* 危险操作按钮（隐藏构件） */
+.btn-danger { color: #b42318; border-color: rgba(180, 35, 24, .35); background: rgba(180, 35, 24, .06); }
+.btn-danger:hover { background: rgba(180, 35, 24, .14); }
