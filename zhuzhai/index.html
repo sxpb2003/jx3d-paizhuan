@@ -8,7 +8,17 @@
 <meta name="description" content="住宅楼砌体排砖三维模型 · 按层展示 · 楼层筛选 / 类别开关 / 剖切">
 <title>住宅楼 · 砌体排砖三维展示</title>
 <link rel="stylesheet" href="../common/viewer.css">
-</head>
+<script>
+/* 部署在 GitHub Pages 时自动跳转到正式站点（sxhicc.cn/paizhuan/）；本地/COS/正式域名下正常渲染 */
+(function () {
+  try {
+    if (!/(^|\.)github\.io$/i.test(location.hostname)) return;
+    var m = location.pathname.match(/^\/jx3d-paizhuan(\/.*)?$/);
+    var p = (m && m[1]) ? m[1] : '/';
+    location.replace('https://sxhicc.cn/paizhuan' + p + location.search + location.hash);
+  } catch (e) { /* ignore */ }
+})();
+</script></head>
 <body>
 <div id="app"></div>
 

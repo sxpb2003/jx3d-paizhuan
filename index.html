@@ -282,7 +282,17 @@
     .foot-meta { text-align: left; }
   }
 </style>
-</head>
+<script>
+/* 部署在 GitHub Pages 时自动跳转到正式站点（sxhicc.cn/paizhuan/）；本地/COS/正式域名下正常渲染 */
+(function () {
+  try {
+    if (!/(^|\.)github\.io$/i.test(location.hostname)) return;
+    var m = location.pathname.match(/^\/jx3d-paizhuan(\/.*)?$/);
+    var p = (m && m[1]) ? m[1] : '/';
+    location.replace('https://sxhicc.cn/paizhuan' + p + location.search + location.hash);
+  } catch (e) { /* ignore */ }
+})();
+</script></head>
 <body>
 <div class="wrap">
   <header class="hero">
