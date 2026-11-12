@@ -1017,7 +1017,8 @@ function fixLabelMaterial(mat) {
     m.depthWrite = false;
     m.polygonOffset = true;
     m.polygonOffsetFactor = -1;
-    m.side = THREE.DoubleSide;
+    // 每块砌块两个大面各有一张外向贴片：用 FrontSide 避免背面镜像文字和多余 overdraw
+    m.side = THREE.FrontSide;
     m.needsUpdate = true;
     if (m.map) {
       m.map.anisotropy = 4;
