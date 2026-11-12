@@ -1311,15 +1311,19 @@ function fixEdgesMaterial(mat) {
   const mats = Array.isArray(mat) ? mat : [mat];
   mats.forEach((m) => {
     if (!m) return;
-    m.alphaTest = 0.35;
-    m.transparent = false;
+    // 边线图集很小（128×128，线像素 alpha≈0.47~0.92），远景 mipmap 平均后 alpha 会掉到
+    // 0.35 的 alphaTest 以下而整层消失；这里用很低的 alphaTest + BLEND 保证远近都能看到分格。
+    m.alphaTest = 0.02;
+    m.transparent = true;
+    m.opacity = 1;
     m.depthWrite = false;
     m.polygonOffset = true;
     m.polygonOffsetFactor = -1;
     m.side = THREE.DoubleSide;
     m.needsUpdate = true;
     if (m.map) {
-      m.map.anisotropy = 4;
+      m.map.minFilter = THREE.LinearFilter; // 避免 mipmap 把细线 alpha 平均光
+      m.map.generateMipmaps = false;
       m.map.needsUpdate = true;
     }
   });
@@ -1437,6 +1441,11 @@ function buildElements(json) {
         arr.push(i);
       }
     }
+  }
+  E.byRevitId = new Map();
+  for (let i = 0; i < E.count; i += 1) {
+    const rid = E.rows[i][4];
+    if (rid != null && rid !== '') E.byRevitId.set(String(rid), i);
   }
   E.ready = true;
   E.error = null;
@@ -1611,6 +1620,23 @@ function fillInfoCard(info) {
     '<div><dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd></div>').join('');
 }
 
+function syncSelectionUrl(info) {
+  try {
+    const u = new URL(location.href);
+    if (info && info.revitId) u.searchParams.set('el', info.revitId);
+    else u.searchParams.delete('el');
+    history.replaceState(null, '', u.toString());
+  } catch (e) { /* ignore */ }
+}
+
+function selectByRevitId(id) {
+  const E = state.elements;
+  if (!E.ready || !E.byRevitId) return null;
+  const idx = E.byRevitId.get(String(id));
+  if (idx == null) return null;
+  return selectElement(idx);
+}
+
 function selectElement(index) {
   if (!state.elements.ready) return null;
   const info = elementInfo(index);
@@ -1622,6 +1648,24 @@ function selectElement(index) {
     state.sheetTouched = true;
     ui.panel.classList.add('is-collapsed');
   }
+  syncSelectionUrl(info);
+  // 本地版（127.0.0.1 / localhost）把选中构件回传给本地服务，便于协作方直接读取
+  try {
+    if (/(^|\.)(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+      const payload = {
+        page: location.pathname,
+        url: location.href,
+        selection: getSelection(),
+        info: info,
+        ts: new Date().toISOString(),
+      };
+      fetch('/__selection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }).catch(function () { /* 本地服务未开时静默 */ });
+    }
+  } catch (e) { /* ignore */ }
   return info;
 }
 
@@ -1629,6 +1673,7 @@ function clearSelection() {
   state.selection = null;
   if (state.highlight) state.highlight.group.visible = false;
   fillInfoCard(null);
+  syncSelectionUrl(null);
   return true;
 }
 
@@ -2504,6 +2549,7 @@ function exposeAPI() {
     pickAt,
     selectElement,
     clearSelection,
+  selectByRevitId,
     getSelection,
     stats,
   };
@@ -2541,6 +2587,14 @@ async function boot() {
   buildEdges(edgeGltf);
   buildElements(elementsJson);
   finalize();
+  // 深链接：?el=<RevitID> 打开即自动选中该构件（便于把链接发给别人核对）
+  try {
+    const wantEl = new URLSearchParams(location.search).get('el');
+    if (wantEl) {
+      const picked = selectByRevitId(wantEl);
+      if (!picked) console.warn('[viewer] 未找到元素 ' + wantEl + '（可能不在当前模型/已删除）');
+    }
+  } catch (e) { /* ignore */ }
   // 调试钩子：?debug=mat 时把门/窗材质参数写到 title，便于无头浏览器核对
   try {
     if (new URLSearchParams(location.search).get('debug') === 'mat') {
