@@ -492,10 +492,9 @@ function applyManifest() {
   const lcfg = m.labels && typeof m.labels === 'object' ? m.labels : null;
   state.labels.cfg = lcfg && lcfg.file ? lcfg : null;
   state.labels.family = (lcfg && lcfg.family) || '';
-  // 手机默认关闭砌块标注（4096 级图集纹理占显存），并且延迟到用户手动开启时才加载
-  const mobileView = window.innerWidth < 768;
-  state.labels.on = mobileView ? false : !(lcfg && lcfg.defaultOn === false);
-  state.labels.deferred = !!(mobileView && state.labels.cfg);
+  // 默认开启砌块标注（含手机端：首次会多下载约 1.3MB 标注文件，换来打开即可见）
+  state.labels.on = !(lcfg && lcfg.defaultOn === false);
+  state.labels.deferred = false;
 
   // 砖边线 / 灰缝层（独立 GLB，按楼层同步显隐，不做距离 LOD）
   const ecfg = m.edges && typeof m.edges === 'object' ? m.edges : null;
@@ -1335,8 +1334,9 @@ function updateLabelsLOD() {
   // 用“相机到模型包围盒的最短距离”做 LOD：
   // 对住宅楼这种 4 栋并排、跨度 169m 的模型，按包围盒中心算会永远看不到标注；
   // 按包围盒距离则“靠近任意一栋就显示、拉远就隐藏”，更符合使用直觉。
+  // 显示距离：至少 30m（manifest 里的 16m 对手机远景太近，放宽到 30m）
   const near = state.bbox.distanceToPoint(state.camera.position) <=
-    (Number(L.cfg.lodDistance) || 16);
+    Math.max(30, Number(L.cfg.lodDistance) || 30);
   if (near !== L.near) {
     L.near = near;
     applyLabelsVisibility();
