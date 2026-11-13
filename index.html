@@ -281,6 +281,22 @@
     .site-footer { flex-direction: column; gap: 14px; }
     .foot-meta { text-align: left; }
   }
+  /* 卡片内“点击进入”按钮（手机上也醒目好点） */
+  .card-btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    width: auto; min-width: 168px; margin-top: 14px; padding: 12px 22px;
+    border-radius: 999px; font-size: 15px; font-weight: 800; letter-spacing: .04em;
+    color: #23180a !important;
+    background: linear-gradient(180deg, #f2dca8, #d9b978);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .5);
+    border: 1px solid rgba(0, 0, 0, .12);
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .card-btn .go { font-weight: 900; }
+  .card:hover .card-btn { transform: translateY(-1px); box-shadow: 0 8px 22px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .5); }
+  @media (max-width: 640px) {
+    .card-btn { width: 100%; min-width: 0; padding: 14px 20px; font-size: 16px; }
+  }
 </style>
 <script>
 /* 部署在 GitHub Pages 时自动跳转到正式站点（sxhicc.cn/paizhuan/）；本地/COS/正式域名下正常渲染 */
@@ -330,7 +346,7 @@
         <div><dt>构件</dt><dd data-stat="elements" class="pending">—</dd></div>
         <div><dt>砌块</dt><dd data-stat="blocks" class="pending">—</dd></div>
       </dl>
-      <span class="card-cta">进入三维查看 <span class="line"></span><span class="go">→</span></span>
+      <span class="card-cta card-btn">点击进入 <span class="go">→</span></span>
     </a>
 
     <a class="card" href="zhuzhai/" data-model="zhuzhai/model.json" data-id="zhuzhai">
@@ -348,7 +364,7 @@
         <div><dt>构件</dt><dd data-stat="elements" class="pending">—</dd></div>
         <div><dt>砌块</dt><dd data-stat="blocks" class="pending">—</dd></div>
       </dl>
-      <span class="card-cta">进入三维查看 <span class="line"></span><span class="go">→</span></span>
+      <span class="card-cta card-btn">点击进入 <span class="go">→</span></span>
     </a>
   </main>
 
