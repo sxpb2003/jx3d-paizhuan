@@ -490,6 +490,19 @@ function applyManifest() {
   state.thicknessVisible = {};
   state.thicknessGroups.forEach((g) => { state.thicknessVisible[g.code] = true; });
 
+  // ---- 单层固定 / 不显示楼层选择 / 默认关闭某些类别（页面级配置） ----
+  state.fixedFloor = '';
+  if (CFG.fixedFloor) {
+    const want = String(CFG.fixedFloor).toUpperCase();
+    const hit = state.floors.find((f) => String(f.key).toUpperCase() === want ||
+      String(f.label || '').indexOf(CFG.fixedFloor) >= 0);
+    if (hit) { state.selectedFloor = hit.key; state.fixedFloor = hit.key; }
+  }
+  state.hideFloorPanel = !!(CFG.hideFloorPanel || state.fixedFloor);
+  if (Array.isArray(CFG.categoriesOff)) {
+    CFG.categoriesOff.forEach((code) => { if (code) state.catVisible[String(code)] = false; });
+  }
+
   const lcfg = m.labels && typeof m.labels === 'object' ? m.labels : null;
   state.labels.cfg = lcfg && lcfg.file ? lcfg : null;
   state.labels.family = (lcfg && lcfg.family) || '';
@@ -1952,6 +1965,13 @@ function buildFloorPanel() {
       '<span class="f-meta">' + esc(floorMetaText(fg)) + '</span></span>' +
       badge + '</button>',
     );
+  }
+  if (state.hideFloorPanel) {
+    // 只显示指定楼层：隐藏“楼层”选择区（含“全部楼层”）
+    const sec = ui.floorList.closest('section');
+    if (sec) sec.style.display = 'none';
+    ui.floorList.style.display = 'none';
+    return;
   }
   ui.floorList.innerHTML = items.join('');
   ui.floorList.querySelectorAll('.floor-item').forEach((btn) => {
