@@ -134,28 +134,28 @@
    "code": "T100",
    "thickness": 100,
    "label": "墙厚 100",
-   "color": "#f2cfa6",
+   "color": "#efe0b4",
    "count": 12946
   },
   {
    "code": "T200",
    "thickness": 200,
    "label": "墙厚 200",
-   "color": "#de7a5f",
+   "color": "#e2562f",
    "count": 2606
   },
   {
    "code": "T250",
    "thickness": 250,
    "label": "墙厚 250",
-   "color": "#c8452f",
+   "color": "#9e120a",
    "count": 1630
   },
   {
    "code": "T300",
    "thickness": 300,
    "label": "墙厚 300",
-   "color": "#9e1b0e",
+   "color": "#9e120a",
    "count": 42
   }
  ],
