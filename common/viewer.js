@@ -2054,8 +2054,9 @@ function buildCategoryPanel() {
   state.categories.forEach((c) => {
     const on = !!state.catVisible[c.code];
     const hasChildren = c.code === 'QC' && state.thicknessGroups.length > 0;
+    // 砌块类别显示全部砌块总数（厚度子项只是“蒸压加气”的子集）
     const count = hasChildren
-      ? state.thicknessGroups.reduce((a, g) => a + num(tTotals[g.code]), 0) || totals[c.code] || 0
+      ? (totals[c.code] || state.thicknessGroups.reduce((a, g) => a + num(tTotals[g.code]), 0) || 0)
       : (totals[c.code] || 0);
     const swStyle = hasChildren ? thicknessSwatchStyle() : 'background:' + esc(c.color);
     parts.push(
