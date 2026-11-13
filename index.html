@@ -337,6 +337,22 @@
     .features { display: none; }
     .site-footer { padding-top: 10px; font-size: 10px; gap: 8px; }
   }
+
+  /* 住宅楼 4 个户型单独页面入口 */
+  .unit-links { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: -4px; }
+  .unit-links-title { color: #94a3b8; font-size: 12px; }
+  .unit-links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 15px; border-radius: 999px;
+    background: rgba(148, 163, 184, .12);
+    border: 1px solid rgba(148, 163, 184, .26);
+    color: #e2e8f0; font-size: 13px; text-decoration: none;
+  }
+  .unit-links a:hover { background: rgba(201, 178, 138, .2); border-color: rgba(201, 178, 138, .5); color: #fff; }
+  @media (max-width: 640px) {
+    .unit-links { gap: 8px; }
+    .unit-links a { padding: 7px 12px; font-size: 12px; }
+  }
 </style>
 <script>
 /* 部署在 GitHub Pages 时自动跳转到正式站点（sxhicc.cn/paizhuan/）；本地/COS/正式域名下正常渲染 */
@@ -400,6 +416,13 @@
       <span class="card-cta card-btn">查看三维排砖 <span class="go">→</span></span>
     </a>
   </main>
+  <section class="unit-links" aria-label="住宅楼 4 个户型单独页面">
+    <span class="unit-links-title">住宅楼 4 个户型（各自单独页面）：</span>
+    <a href="zhuzhai/u1/">1 号户型</a>
+    <a href="zhuzhai/u2/">2 号户型</a>
+    <a href="zhuzhai/u3/">3 号户型</a>
+    <a href="zhuzhai/u4/">4 号户型</a>
+  </section>
 
   <section class="features">
     <div class="feat">

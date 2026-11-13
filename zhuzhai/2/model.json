@@ -1,0 +1,190 @@
+{
+ "id": "zhuzhai_u2",
+ "title": "住宅楼 · 2号户型",
+ "subtitle": "Revit 2024 排砖模型 · 分层 + 砌块尺寸标注",
+ "generated": "2026-11-13",
+ "unit": "m",
+ "up": "Y",
+ "source": {
+  "rvt": "打印交付版排砖总文件常规模型+结构+门窗-备份文件-2026-7-25构造柱更新-2024revit.rvt",
+  "ifc": "zhuzhai.ifc"
+ },
+ "bbox": {
+  "min": [
+   1633.516,
+   362.114,
+   5.95
+  ],
+  "max": [
+   1654.316,
+   374.514,
+   13.45
+  ]
+ },
+ "floors": [
+  {
+   "key": "F01",
+   "label": "标高 5.950",
+   "elev": 5.95,
+   "height": null,
+   "name": "结构层 5.950",
+   "file": "assets/f01.glb",
+   "counts": {
+    "Z": 31
+   },
+   "blocks": 0,
+   "sizeMB": 0.01,
+   "labelQuads": 0
+  },
+  {
+   "key": "F02",
+   "label": "标高 8.950",
+   "elev": 8.95,
+   "height": null,
+   "name": "排砖标准层 8.950",
+   "file": "assets/f02.glb",
+   "counts": {
+    "B": 26,
+    "G": 2,
+    "L": 102,
+    "M": 21,
+    "Q": 97,
+    "T100": 3062,
+    "QC": 4108,
+    "T200": 676,
+    "T250": 370,
+    "QT": 115,
+    "W": 17,
+    "Z": 55
+   },
+   "blocks": 4108,
+   "sizeMB": 0.41,
+   "labelQuads": 2670
+  },
+  {
+   "key": "F03",
+   "label": "标高 11.950",
+   "elev": 11.95,
+   "height": null,
+   "name": "结构层 11.950",
+   "file": "assets/f03.glb",
+   "counts": {
+    "B": 24,
+    "L": 39,
+    "T200": 6,
+    "QC": 6,
+    "QT": 4
+   },
+   "blocks": 6,
+   "sizeMB": 0.01,
+   "labelQuads": 12
+  }
+ ],
+ "categories": [
+  {
+   "code": "B",
+   "label": "板",
+   "color": "#a8a29a"
+  },
+  {
+   "code": "G",
+   "label": "玻璃",
+   "color": "#8fd3e8"
+  },
+  {
+   "code": "L",
+   "label": "梁",
+   "color": "#8f949b"
+  },
+  {
+   "code": "M",
+   "label": "门",
+   "color": "#6b7c93"
+  },
+  {
+   "code": "Q",
+   "label": "墙",
+   "color": "#b8b1a4"
+  },
+  {
+   "code": "QC",
+   "label": "砌块",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "QT",
+   "label": "其他",
+   "color": "#9a9a9a"
+  },
+  {
+   "code": "W",
+   "label": "窗",
+   "color": "#4f7c94"
+  },
+  {
+   "code": "Z",
+   "label": "柱",
+   "color": "#ec9a92"
+  }
+ ],
+ "thicknessGroups": [
+  {
+   "code": "T100",
+   "thickness": 100,
+   "label": "墙厚 100",
+   "color": "#f2cfa6",
+   "count": 3062
+  },
+  {
+   "code": "T200",
+   "thickness": 200,
+   "label": "墙厚 200",
+   "color": "#de7a5f",
+   "count": 682
+  },
+  {
+   "code": "T250",
+   "thickness": 250,
+   "label": "墙厚 250",
+   "color": "#c8452f",
+   "count": 370
+  }
+ ],
+ "labels": {
+  "file": "assets/labels.glb",
+  "textHeight": 0.15,
+  "defaultOn": true,
+  "lodDistance": 30.0,
+  "family": "蒸压加气混凝土砌块",
+  "nodes": {
+   "F02": "L_F02",
+   "F03": "L_F03"
+  }
+ },
+ "edges": {
+  "file": "assets/edges.glb",
+  "defaultOn": true,
+  "nodes": {
+   "F01": "E_F01",
+   "F02": "E_F02",
+   "F03": "E_F03"
+  }
+ },
+ "stats": {
+  "elements": 4647,
+  "blocks": 4114,
+  "floors": 3,
+  "byCategory": {
+   "Z": 86,
+   "B": 50,
+   "G": 2,
+   "L": 141,
+   "M": 21,
+   "Q": 97,
+   "QC": 4114,
+   "QT": 119,
+   "W": 17
+  },
+  "thicknessKinds": 3
+ }
+}
