@@ -37,6 +37,19 @@
   { "imports": { "three": "../lib/three.module.js" } }
 </script>
 
-<script type="module" src="../common/viewer.js"></script>
+<!-- 先取 version.txt 再加载 viewer.js：避免 CDN 缓存旧脚本（js 缓存 24 小时） -->
+  <script>
+  (async function () {
+    let v = '';
+    try {
+      const r = await fetch('../version.txt?t=' + Date.now(), { cache: 'no-store' });
+      if (r.ok) v = (await r.text()).trim();
+    } catch (e) { /* ignore */ }
+    const s = document.createElement('script');
+    s.type = 'module';
+    s.src = '../common/viewer.js' + (v ? ('?v=' + encodeURIComponent(v)) : '');
+    document.head.appendChild(s);
+  })();
+  </script>
 </body>
 </html>
