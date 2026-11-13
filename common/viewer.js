@@ -1539,11 +1539,22 @@ function findElementAt(wx, wy, wz, floorKeyHint) {
   const tried = new Set();
   let best = -1;
   let bestVol = Infinity;
+  const catCodes = E.meta.categories;
+  const floorKeys = E.meta.floors;
+  const isRowVisible = (idx) => {
+    const r = rows[idx];
+    const code = catCodes[r[1]];
+    if (code && state.catVisible && state.catVisible[code] === false) return false;
+    const fk = floorKeys[r[0]];
+    if (state.selectedFloor !== 'all' && fk && fk !== state.selectedFloor) return false;
+    return true;
+  };
   const consider = (idx) => {
     if (tried.has(idx)) return;
     tried.add(idx);
     const r = rows[idx];
     if (floorIdx != null && r[0] !== floorIdx) return;
+    if (!isRowVisible(idx)) return;
     const mnx = Math.min(r[5], r[8]);
     const mxx = Math.max(r[5], r[8]);
     const mny = Math.min(r[6], r[9]);
@@ -1572,6 +1583,7 @@ function findElementAt(wx, wy, wz, floorKeyHint) {
   let nd = 0.3;
   for (let k = 0; k < list.length; k += 1) {
     const i = list[k];
+    if (!isRowVisible(i)) continue;
     const r = rows[i];
     const cx = (r[5] + r[8]) / 2;
     const cy = (r[6] + r[9]) / 2;
