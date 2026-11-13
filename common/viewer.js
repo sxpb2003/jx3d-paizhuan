@@ -152,6 +152,7 @@ const APP_TEMPLATE = `
       <span class="ic-hint">点空白处 / Esc 取消</span>
     </div>
   </aside>
+  <button class="fab-near" id="btnNear" type="button" title="拉近到墙面，看砖上标注">看标注</button>
   <footer class="meta-footer" id="metaFooter"></footer>
   <div class="toast" id="toast"></div>
   <div class="loader" id="loader">
@@ -266,7 +267,7 @@ function buildDOM() {
     'statTotalBlocks', 'statFloors', 'statElements',
     'panel', 'sheetHandle', 'floorList', 'catList',
     'clipValue', 'clipState', 'clipRange', 'clipMin', 'clipMax',
-    'btnClipOff', 'btnReset', 'btnResetTop', 'btnShowAll', 'btnGrid', 'btnLabels', 'btnEdges',
+    'btnClipOff', 'btnReset', 'btnResetTop', 'btnShowAll', 'btnGrid', 'btnLabels', 'btnEdges', 'btnNear',
     'infoCard', 'icList', 'icClose', 'icCopy', 'icHide',
     'infoList', 'metaInline', 'metaFooter', 'toast', 'loader', 'loaderBar', 'loaderPct',
     'loaderStatus', 'loaderProject', 'loaderRetry',
@@ -1326,6 +1327,29 @@ function applyLabelsVisibility() {
     const floorVisible = state.selectedFloor === 'all' || state.selectedFloor === floorKey;
     node.visible = base && floorVisible;
   });
+}
+
+/** 一键拉近到近景墙面：让砖上的尺寸标注清晰可见（整栋远景下字太小） */
+function flyToLabelView() {
+  const cam = state.camera, ctl = state.controls;
+  if (!cam || !ctl || !state.bbox) return false;
+  const b = state.bbox;
+  const center = new THREE.Vector3(
+    (b.min.x + b.max.x) / 2,
+    (b.min.y + b.max.y) / 2,
+    (b.min.z + b.max.z) / 2,
+  );
+  const dir = cam.position.clone().sub(ctl.target);
+  if (dir.lengthSq() < 1e-8) dir.set(0.75, 0.45, 0.75);
+  dir.normalize();
+  const box = b.getSize(new THREE.Vector3());
+  const dist = Math.max(9, Math.min(13, Math.min(box.x, box.z) * 0.55 || 11));
+  ctl.target.copy(center);
+  cam.position.copy(center.clone().add(dir.multiplyScalar(dist)));
+  ctl.update();
+  state.userMoved = true;
+  try { toast('已拉近近景：砖上标注可见；点「复位视角」回看整栋', 3200); } catch (e) {}
+  return true;
 }
 
 function updateLabelsLOD() {
@@ -2488,6 +2512,7 @@ function bindButtons() {
   ui.btnShowAll.addEventListener('click', () => setShowAllFloors());
   ui.btnGrid.addEventListener('click', () => setGrid());
   ui.btnLabels.addEventListener('click', () => setLabels());
+  if (ui.btnNear) ui.btnNear.addEventListener('click', () => flyToLabelView());
   if (ui.icHide) ui.icHide.addEventListener('click', () => hideSelectedElement());
   ui.btnEdges.addEventListener('click', () => setEdges());
   ui.loaderRetry.addEventListener('click', () => location.reload());

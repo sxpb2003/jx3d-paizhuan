@@ -829,3 +829,19 @@ canvas#gl {
 /* 危险操作按钮（隐藏构件） */
 .btn-danger { color: #b42318; border-color: rgba(180, 35, 24, .35); background: rgba(180, 35, 24, .06); }
 .btn-danger:hover { background: rgba(180, 35, 24, .14); }
+
+/* 浮动“看标注”按钮：一键拉近近景，砖上标注可见 */
+.fab-near {
+  position: fixed; right: 16px; bottom: 96px; z-index: 45;
+  padding: 12px 18px; border-radius: 999px;
+  font-size: 14px; font-weight: 800; letter-spacing: .04em;
+  color: #23180a;
+  background: linear-gradient(180deg, #f2dca8, #d9b978);
+  border: 1px solid rgba(0, 0, 0, .15);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .28);
+  cursor: pointer;
+}
+.fab-near:active { transform: translateY(1px); }
+@media (max-width: 640px) {
+  .fab-near { right: 12px; bottom: 108px; padding: 13px 18px; font-size: 15px; }
+}
