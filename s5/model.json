@@ -2,7 +2,7 @@
  "id": "s5",
  "title": "S5 幼儿园 · 砌体排砖",
  "subtitle": "Revit 2024 排砖模型 · 分层 + 砌块尺寸标注",
- "generated": "2026-11-13",
+ "generated": "2026-11-14",
  "unit": "m",
  "up": "Y",
  "source": {
@@ -48,7 +48,7 @@
    },
    "blocks": 12289,
    "sizeMB": 1.41,
-   "labelQuads": 11474
+   "labelQuads": 11472
   },
   {
    "key": "F02",
