@@ -1334,8 +1334,8 @@ function buildLabels(gltf) {
 function applyLabelsVisibility() {
   const L = state.labels;
   if (!L.root) return;
-  const qcOn = !!state.catVisible['QC'];
-  const base = L.loaded && L.on && L.near && qcOn;
+  // 标注层现在含“砌块尺寸”和“门窗名称”，不随砌块类别开关一起隐藏
+  const base = L.loaded && L.on && L.near;
   Object.entries(L.nodesByFloor).forEach(([floorKey, node]) => {
     const floorVisible = state.selectedFloor === 'all' || state.selectedFloor === floorKey;
     node.visible = base && floorVisible;
