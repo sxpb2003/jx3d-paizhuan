@@ -297,6 +297,45 @@
   @media (max-width: 640px) {
     .card-btn { width: 100%; min-width: 0; padding: 14px 20px; font-size: 16px; }
   }
+
+  /* ---------- 手机首屏：压缩头部与卡片，保证两张单体的“查看三维排砖”都在第一屏 ---------- */
+  @media (max-width: 640px) {
+    .wrap {
+      padding: 14px 12px 16px;
+      gap: 12px;
+      min-height: 100vh;
+    }
+    .eyebrow { font-size: 9.5px; padding: 3px 9px; letter-spacing: .12em; }
+    h1 { margin-top: 9px; font-size: 20px; line-height: 1.26; letter-spacing: .2px; }
+    h1 .accent { margin-top: 2px; }
+    h1 .accent::after { bottom: -5px; height: 2px; }
+    .lead {
+      margin-top: 10px; font-size: 11px; line-height: 1.5;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+    .tags { display: none; }
+    .cards { gap: 10px; }
+    .card { padding: 11px 13px 11px 17px; border-radius: 14px; }
+    .card::before { width: 4px; }
+    .card::after { display: none; }
+    .card-head { gap: 9px; }
+    .badge { width: 32px; height: 32px; border-radius: 9px; font-size: 10.5px; }
+    .kicker { font-size: 8.5px; letter-spacing: .12em; }
+    .card h2 { font-size: 15.5px; margin-top: 1px; }
+    .arrow { display: none; }
+    .card-desc {
+      margin: 7px 0 9px; font-size: 10.8px; line-height: 1.42;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
+    .card-stats { margin: 0 0 9px; padding: 7px 0; gap: 6px; }
+    .card-stats dt { font-size: 8.5px; letter-spacing: .04em; }
+    .card-stats dd { font-size: 14px; }
+    .card-btn { margin-top: 2px; padding: 10px 16px; font-size: 13.5px; min-width: 0; }
+    .features { display: none; }
+    .site-footer { padding-top: 10px; font-size: 10px; gap: 8px; }
+  }
 </style>
 <script>
 /* 部署在 GitHub Pages 时自动跳转到正式站点（sxhicc.cn/paizhuan/）；本地/COS/正式域名下正常渲染 */
