@@ -1994,10 +1994,13 @@ function buildFloorPanel() {
 function categoryTotals() {
   const totals = {};
   const tmap = thicknessMap();
+  const hasQCKey = state.floorGroups.some((f) => f.counts && Object.prototype.hasOwnProperty.call(f.counts, 'QC'));
   for (const fg of state.floorGroups) {
     if (fg.counts) {
       Object.entries(fg.counts).forEach(([code, n]) => {
-        const target = tmap.has(code.toUpperCase()) ? 'QC' : code;
+        const isT = tmap.has(code.toUpperCase());
+        if (isT && hasQCKey) return; // QC 键已含全部砌块，厚度子键只是子集
+        const target = isT ? 'QC' : code;
         totals[target] = (totals[target] || 0) + num(n);
       });
     } else {
@@ -2272,26 +2275,38 @@ function floorCountSum(fg, respectFilter) {
     });
     return { elements, blocks };
   }
+  const hasT = Object.keys(counts).some((k) => tmap.has(k.toUpperCase()));
+  const hasQC = Object.prototype.hasOwnProperty.call(counts, 'QC');
   let elements = 0;
   let blocks = 0;
-  const hasT = Object.keys(counts).some((k) => tmap.has(k.toUpperCase()));
+  let hiddenThick = 0;   // 被关掉的墙厚子项数量（从 QC 总数里扣）
   Object.entries(counts).forEach(([code, n]) => {
     const key = code.toUpperCase();
     const val = num(n);
     if (tmap.has(key)) {
-      if (respectFilter && !(state.catVisible.QC && state.thicknessVisible[code])) return;
-      elements += val; blocks += val;
+      // 厚度子项：只是 QC 的子集，用于扣减，不单独累加
+      if (respectFilter && !(state.catVisible.QC && state.thicknessVisible[code])) hiddenThick += val;
       return;
     }
-    if (code === 'QC' && hasT) return; // 墙厚子项已精确统计
-    if (code === 'QC') {
-      if (respectFilter && !state.catVisible.QC) return;
-      elements += val; blocks += val;
-      return;
-    }
+    if (code === 'QC') return; // 砌块总数最后统一算
     if (respectFilter && !state.catVisible[code]) return;
     elements += val;
   });
+  if (hasQC) {
+    const qcTotal = num(counts.QC);
+    if (!respectFilter || state.catVisible.QC) {
+      const qcVisible = Math.max(0, qcTotal - (hasT ? hiddenThick : 0));
+      elements += qcVisible;
+      blocks += qcVisible;
+    }
+  } else if (hasT) {
+    // 旧数据兜底：QC 不存在时按厚度子项累加
+    Object.entries(counts).forEach(([code, n]) => {
+      if (!tmap.has(code.toUpperCase())) return;
+      if (respectFilter && !(state.catVisible.QC && state.thicknessVisible[code])) return;
+      elements += num(n); blocks += num(n);
+    });
+  }
   return { elements, blocks };
 }
 
