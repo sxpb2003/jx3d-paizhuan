@@ -2,7 +2,7 @@
  "id": "s5",
  "title": "S5 幼儿园 · 砌体排砖",
  "subtitle": "Revit 2024 排砖模型 · 分层 + 砌块尺寸标注",
- "generated": "2026-11-12",
+ "generated": "2026-11-13",
  "unit": "m",
  "up": "Y",
  "source": {
@@ -169,7 +169,7 @@
   {
    "code": "Z",
    "label": "柱",
-   "color": "#7d858e"
+   "color": "#ec9a92"
   }
  ],
  "thicknessGroups": [
@@ -177,35 +177,35 @@
    "code": "T0",
    "thickness": 0,
    "label": "墙厚 0",
-   "color": "#b5ada0",
+   "color": "#e8c9a8",
    "count": 5
   },
   {
    "code": "T100",
    "thickness": 100,
    "label": "墙厚 100",
-   "color": "#e3c79c",
+   "color": "#f2cfa6",
    "count": 17308
   },
   {
    "code": "T150",
    "thickness": 150,
    "label": "墙厚 150",
-   "color": "#d0ae7b",
+   "color": "#eda98a",
    "count": 584
   },
   {
    "code": "T200",
    "thickness": 200,
    "label": "墙厚 200",
-   "color": "#b98f5c",
+   "color": "#de7a5f",
    "count": 9756
   },
   {
    "code": "T250",
    "thickness": 250,
    "label": "墙厚 250",
-   "color": "#9a7444",
+   "color": "#c8452f",
    "count": 3618
   }
  ],
@@ -213,7 +213,7 @@
   "file": "assets/labels.glb",
   "textHeight": 0.15,
   "defaultOn": true,
-  "lodDistance": 16.0,
+  "lodDistance": 30.0,
   "family": "蒸压加气混凝土砌块",
   "nodes": {
    "F01": "L_F01",
