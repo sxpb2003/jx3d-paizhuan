@@ -1185,9 +1185,9 @@ function fixLabelMaterial(mat) {
     m.depthWrite = false;
     m.polygonOffset = true;
     m.polygonOffsetFactor = -1;
-    // 每块砌块两个大面各有一张贴片；用 DoubleSide 保证两面都能看到
-    // （背面被砌块本身遮挡，不会出现"透视文字"；three 会自动翻转背面法线，光照正常）
-    m.side = THREE.DoubleSide;
+    // 每张贴片只朝各自外侧可见（单面）：门/窗是半透明的，若用 DoubleSide，
+    // 从背面会看到另一侧标注的镜像文字；单面朝向可彻底避免
+    m.side = THREE.FrontSide;
     m.needsUpdate = true;
     if (m.map) {
       m.map.anisotropy = 4;
