@@ -53,16 +53,16 @@
     "M": 17,
     "Q": 77,
     "QC": 3582,
-    "T100": 373,
-    "T200": 531,
-    "T250": 228,
+    "T100": 427,
+    "T200": 583,
+    "T250": 257,
     "QT": 86,
     "W": 26,
     "Z": 18
    },
    "blocks": 3582,
    "sizeMB": 0.36,
-   "labelQuads": 2342
+   "labelQuads": 2577
   },
   {
    "key": "F03",
@@ -74,11 +74,12 @@
    "counts": {
     "B": 17,
     "L": 35,
+    "T200": 6,
     "QC": 6
    },
    "blocks": 6,
    "sizeMB": 0.01,
-   "labelQuads": 0
+   "labelQuads": 12
   }
  ],
  "categories": [
@@ -149,21 +150,21 @@
    "thickness": 100,
    "label": "墙厚 100",
    "color": "#efe0b4",
-   "count": 373
+   "count": 427
   },
   {
    "code": "T200",
    "thickness": 200,
    "label": "墙厚 200",
    "color": "#e2562f",
-   "count": 531
+   "count": 589
   },
   {
    "code": "T250",
    "thickness": 250,
    "label": "墙厚 250",
    "color": "#9e120a",
-   "count": 228
+   "count": 257
   }
  ],
  "labels": {
@@ -173,7 +174,8 @@
   "lodDistance": 30.0,
   "family": "蒸压加气混凝土砌块",
   "nodes": {
-   "F02": "L_F02"
+   "F02": "L_F02",
+   "F03": "L_F03"
   }
  },
  "edges": {

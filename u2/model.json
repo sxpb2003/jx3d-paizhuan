@@ -53,16 +53,16 @@
     "M": 21,
     "Q": 86,
     "QC": 4108,
-    "T100": 384,
-    "T200": 621,
-    "T250": 330,
+    "T100": 446,
+    "T200": 676,
+    "T250": 370,
     "QT": 115,
     "W": 17,
     "Z": 31
    },
    "blocks": 4108,
    "sizeMB": 0.41,
-   "labelQuads": 2744
+   "labelQuads": 3020
   },
   {
    "key": "F03",
@@ -151,21 +151,21 @@
    "thickness": 100,
    "label": "墙厚 100",
    "color": "#efe0b4",
-   "count": 384
+   "count": 446
   },
   {
    "code": "T200",
    "thickness": 200,
    "label": "墙厚 200",
    "color": "#e2562f",
-   "count": 627
+   "count": 682
   },
   {
    "code": "T250",
    "thickness": 250,
    "label": "墙厚 250",
    "color": "#9e120a",
-   "count": 330
+   "count": 370
   }
  ],
  "labels": {
