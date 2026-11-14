@@ -2403,7 +2403,7 @@ function buildInfoPanel() {
     ['砌块合计', fmt(total.blocks) + ' 块'],
     ['几何量', '≈ ' + (state.triangles / 10000).toFixed(1) + ' 万面 · ' + state.meshCount + ' 批'],
     ['每块砌块标注', '<span id="infoLabels">' + labelStateText() + '</span>'],
-    ['标注范围', state.labels.family ? ('仅 ' + state.labels.family) : '全部砌块'],
+    ['标注范围', '蒸压加气砌块 / 三角砌块 / 门窗名称'],
     ['砖边线 / 灰缝', '<span id="infoEdges">' + edgesStateText() + '</span>'],
     ['构件点选', '<span id="infoPick">' + pickStateText() + '</span>'],
     ['单位 / 朝向', (m.unit || 'm') + ' / ' + (m.up || 'Y') + '-up'],
