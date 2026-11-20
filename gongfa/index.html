@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#111827">
+<meta name="description" content="砌体排砖工法 · 江峡三路集镇迁建区二期一标段 排砖模型统计与三维展示入口">
+<title>砌体排砖工法 · 模型统计与三维展示</title>
+<style>
+  :root{--ink:#111827;--paper:#f8fafc;--muted:#9ca3af;--brick:#c9b28a;--brick2:#e2cfae;--line:rgba(255,255,255,.12)}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{min-height:100vh;color:var(--paper);background:
+    radial-gradient(1200px 620px at 12% -12%,#26364d 0,rgba(38,54,77,0) 62%),
+    radial-gradient(980px 560px at 104% -4%,#1c2c42 0,rgba(28,44,66,0) 58%),
+    linear-gradient(180deg,#0c1320 0,#111827 42%,#0b1220 100%);
+    font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto;padding:clamp(26px,4vw,56px) clamp(16px,4vw,36px) 40px;display:flex;flex-direction:column;gap:clamp(22px,3vw,36px)}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:5px 12px;border-radius:20px;border:1px solid rgba(201,178,138,.34);background:rgba(201,178,138,.09);color:var(--brick2);font-size:11px;letter-spacing:.16em}
+  h1{margin:14px 0 8px;font-size:clamp(24px,4.4vw,40px);letter-spacing:.02em;line-height:1.25}
+  .lead{margin:0;color:#cbd5e1;font-size:clamp(13px,1.6vw,15px);line-height:1.85;max-width:62ch}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-top:22px}
+  .kpi{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.03)}
+  .kpi b{display:block;font-size:clamp(20px,3vw,28px);color:#fff;letter-spacing:.02em}
+  .kpi span{display:block;margin-top:4px;color:var(--muted);font-size:12px;letter-spacing:.08em}
+  h2{margin:0 0 14px;font-size:clamp(16px,2.2vw,20px);letter-spacing:.04em}
+  h2 i{display:inline-block;width:6px;height:18px;margin-right:9px;vertical-align:-3px;border-radius:2px;background:var(--brick)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}
+  .card{position:relative;display:flex;flex-direction:column;gap:6px;padding:18px 18px 16px;border-radius:16px;border:1px solid var(--line);
+    background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015));text-decoration:none;color:inherit;transition:.18s}
+  .card:hover{border-color:rgba(201,178,138,.55);transform:translateY(-2px)}
+  .card-tag{position:absolute;right:14px;top:14px;font-size:11px;color:var(--brick2);border:1px solid rgba(201,178,138,.4);border-radius:10px;padding:2px 8px}
+  .card-name{font-size:15px;color:#fff}
+  .card-num{margin-top:10px;font-size:26px;color:var(--brick2);line-height:1}
+  .card-num em{font-style:normal;font-size:12px;color:var(--muted);margin-left:4px}
+  .card-sub{color:#94a3b8;font-size:12px;line-height:1.6}
+  .card-go{margin-top:10px;color:#cbd5e1;font-size:12px;letter-spacing:.06em}
+  .panel{border:1px solid var(--line);border-radius:16px;padding:18px 18px 20px;background:rgba(255,255,255,.025)}
+  .bar-row{display:grid;grid-template-columns:180px 1fr 132px;align-items:center;gap:12px;margin:10px 0;font-size:13px}
+  .bar-label{color:#cbd5e1}
+  .bar-track{display:block;height:10px;border-radius:6px;background:rgba(255,255,255,.07);overflow:hidden}
+  .bar-track i{display:block;height:100%;border-radius:6px}
+  .bar-val{color:var(--muted);text-align:right;font-variant-numeric:tabular-nums}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.08)}
+  th{color:var(--brick2);font-weight:600;letter-spacing:.06em}
+  td:nth-child(3){text-align:right;font-variant-numeric:tabular-nums}
+  ol.rules{margin:0;padding-left:20px;color:#cbd5e1;font-size:13.5px;line-height:2}
+  ol.rules b{color:#fff}
+  .note{margin-top:14px;padding:12px 14px;border-left:3px solid var(--brick);background:rgba(201,178,138,.07);border-radius:0 10px 10px 0;color:#cbd5e1;font-size:12.5px;line-height:1.8}
+  footer{border-top:1px solid var(--line);padding-top:16px;color:#6b7280;font-size:12px;line-height:1.9}
+  footer a{color:#94a3b8}
+  @media(max-width:640px){.bar-row{grid-template-columns:1fr;gap:6px}.bar-val{text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="eyebrow">施工工法 · 模型实证</span>
+    <h1>砌体排砖工法</h1>
+    <p class="lead">江峡三路集镇迁建区建设项目二期（一标段）· 排砖由“现场试排”前移为“图上前置”：
+      按户型建立排砖规则，逐墙计算配块、输出逐块材料表与排砖图，切割与配送按表执行。
+      本页汇总 5 个 Revit 2024 排砖模型的实测构件统计，并可进入各模型的三维浏览。</p>
+    <div class="kpis">
+      <div class="kpi"><b>5</b><span>排砖模型</span></div>
+      <div class="kpi"><b>48,493</b><span>砌块（逐块建模）</span></div>
+      <div class="kpi"><b>53,465</b><span>构件总数</span></div>
+      <div class="kpi"><b>4 + 1</b><span>住宅户型 / 幼儿园</span></div>
+    </div>
+  </header>
+
+  <section>
+    <h2><i></i>三维模型入口</h2>
+    <div class="cards">
+<a class="card" href="../u1/">
+      <span class="card-tag">3 层</span>
+      <span class="card-name">住宅楼 · U1 户型</span>
+      <span class="card-num">3,586 <em>块砌块</em></span>
+      <span class="card-sub">构件 4,019 · 导墙砖 2,313 · 加气块 1,132</span>
+      <span class="card-go">打开三维 →</span>
+    </a>
+<a class="card" href="../u2/">
+      <span class="card-tag">3 层</span>
+      <span class="card-name">住宅楼 · U2 户型</span>
+      <span class="card-num">4,114 <em>块砌块</em></span>
+      <span class="card-sub">构件 4,647 · 导墙砖 2,616 · 加气块 1,341</span>
+      <span class="card-go">打开三维 →</span>
+    </a>
+<a class="card" href="../u3/">
+      <span class="card-tag">3 层</span>
+      <span class="card-name">住宅楼 · U3 户型</span>
+      <span class="card-num">4,949 <em>块砌块</em></span>
+      <span class="card-sub">构件 5,545 · 导墙砖 3,211 · 加气块 1,550</span>
+      <span class="card-go">打开三维 →</span>
+    </a>
+<a class="card" href="../u4/">
+      <span class="card-tag">3 层</span>
+      <span class="card-name">住宅楼 · U4 户型</span>
+      <span class="card-num">4,573 <em>块砌块</em></span>
+      <span class="card-sub">构件 5,177 · 导墙砖 2,893 · 加气块 1,495</span>
+      <span class="card-go">打开三维 →</span>
+    </a>
+<a class="card" href="../s5/">
+      <span class="card-tag">4 层</span>
+      <span class="card-name">S5 幼儿园</span>
+      <span class="card-num">31,271 <em>块砌块</em></span>
+      <span class="card-sub">构件 34,077 · 导墙砖 16,028 · 加气块 13,987</span>
+      <span class="card-go">打开三维 →</span>
+    </a>
+    </div>
+  </section>
+
+  <section>
+    <h2><i></i>砌块构成（5 个模型合计）</h2>
+    <div class="panel">
+      
+    <div class="bar-row">
+      <span class="bar-label">导墙砖 200×100×50</span>
+      <span class="bar-track"><i style="width:55.8%;background:#c9b28a"></i></span>
+      <span class="bar-val">27,061 · 55.8%</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">蒸压加气混凝土砌块</span>
+      <span class="bar-track"><i style="width:40.2%;background:#8fb3c9"></i></span>
+      <span class="bar-val">19,505 · 40.2%</span>
+    </div>
+    <div class="bar-row">
+      <span class="bar-label">异形 / 三角砌块</span>
+      <span class="bar-track"><i style="width:4.0%;background:#a5b4c4"></i></span>
+      <span class="bar-val">1,927 · 4.0%</span>
+    </div>
+      <div class="note">导墙砖为墙底坎台与找平用实心小砖（200×100×50）；加气混凝土砌块为主墙体块（600×300 系列）；
+        异形/三角砌块用于洞口、梁底与转角收口。逐块建模使材料量可直接出表，无需二次估算。</div>
+    </div>
+  </section>
+
+  <section>
+    <h2><i></i>砌块尺寸组合（按数量排序）</h2>
+    <div class="panel">
+      <table>
+        <thead><tr><th>#</th><th>尺寸 长×高×厚（mm）</th><th>数量</th></tr></thead>
+        <tbody><tr><td>1</td><td>200 × 100 × 50</td><td>21,279</td></tr><tr><td>2</td><td>600 × 300 × 200</td><td>7,292</td></tr><tr><td>3</td><td>600 × 300 × 250</td><td>2,775</td></tr><tr><td>4</td><td>100 × 100 × 50</td><td>1,794</td></tr><tr><td>5</td><td>600 × 300 × 100</td><td>1,592</td></tr><tr><td>6</td><td>300 × 300 × 200</td><td>895</td></tr><tr><td>7</td><td>130 × 100 × 50</td><td>511</td></tr><tr><td>8</td><td>120 × 100 × 50</td><td>503</td></tr><tr><td>9</td><td>300 × 300 × 250</td><td>310</td></tr><tr><td>10</td><td>600 × 300 × 150</td><td>299</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2><i></i>排砖规则要点</h2>
+    <div class="panel">
+      <ol class="rules">
+        <li><b>模数前置</b>：以砌块长度加灰缝、砌块高度加灰缝建立模数表，先定皮数再定块型，墙长墙高折算为模数个数。</li>
+        <li><b>排砖图先行</b>：每面墙排出“墙编号—皮数—块序号”三级编码，主块、辅块、切割块位置与尺寸全部落到图上。</li>
+        <li><b>洞口对位</b>：门窗洞口两侧镶砖长度不小于砌块长度的三分之一，窗角固定点按图标高预置，避免后期剔凿。</li>
+        <li><b>构造柱与马牙槎</b>：柱位按结构图定位，先砌墙后浇柱，槎口与皮数一一对应，每槎高度与砌块模数匹配。</li>
+        <li><b>灰缝与皮数</b>：水平、竖向灰缝按设计取值，灰缝饱满度与错缝搭砌长度按验收规范控制。</li>
+        <li><b>顶砌</b>：砌至梁底留缝，静置 5~7 天后再斜砌顶紧，或用于硬性砂浆塞实。</li>
+        <li><b>集中切割</b>：切割块按排布表编码在集中加工区统一下料，余料按尺寸分档标识、二次利用。</li>
+        <li><b>首件校核回写</b>：每个户型先做一面样板墙，实测垂直度、平整度与灰缝，偏差超限回改规则后重算。</li>
+      </ol>
+      <div class="note">以上为工法文本（11 章结构）中“工艺流程及操作要点”的要点摘录，完整内容见工法正文。</div>
+    </div>
+  </section>
+
+  <footer>
+    <div>数据来源：Revit 2024 排砖模型（打印交付版排砖总文件 · 2024revit；S5幼儿园-排砖 -revit2024）→ IFC → 逐块解析统计。</div>
+    <div>统计口径：砌块按族与净尺寸分类；同一模型内同尺寸合并计数。页面版本 <a href="version.txt" id="ver">读取中…</a> · 更新即自动刷新。</div>
+  </footer>
+</div>
+<script>
+  // version.txt 版本机制：与本站其它页面一致，改动后重新打开即为最新
+  (async () => {
+    try {
+      const r = await fetch('version.txt?_=' + Date.now(), { cache: 'no-store' });
+      const v = (await r.text()).trim();
+      const el = document.getElementById('ver');
+      if (el) el.textContent = v;
+      window.__ver = v;
+    } catch (e) {
+      const el = document.getElementById('ver');
+      if (el) el.textContent = '本地预览';
+    }
+  })();
+</script>
+</body>
+</html>
