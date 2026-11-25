@@ -1,0 +1,68 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#0d1626;overflow:hidden}
+#hud{position:fixed;left:80px;top:70px;color:#f4f6fa;font-family:'Microsoft YaHei';z-index:9}
+#hud h1{font-size:64px;margin:0;font-weight:700}
+#hud p{font-size:34px;color:#8fa3c0;margin:14px 0 0}
+#bar{position:fixed;left:80px;bottom:70px;width:600px;height:10px;background:#1e2f4a;border-radius:5px;z-index:9}
+#fill{height:100%;background:#f2a33c;border-radius:5px;width:0}
+#cnt{position:fixed;left:700px;bottom:58px;color:#f2a33c;font-family:'Microsoft YaHei';font-size:32px;z-index:9}
+</style></head><body>
+<div id="hud"><h1>标准层排砖模型</h1><p>逐块砌筑 · 按皮升起</p></div>
+<div id="bar"><div id="fill"></div></div><div id="cnt"></div><div id="st" style="position:fixed;left:80px;bottom:110px;color:#8fa3c0;font:26px 'Microsoft YaHei';z-index:9">init</div>
+<script type="importmap">
+{ "imports": { "three": "./lib/three.module.js" } }
+</script>
+<script>window.addEventListener('error', e => { document.title='ERR: '+e.message; const d=document.createElement('div'); d.style.cssText='position:fixed;left:60px;top:260px;color:#e2564a;font:28px Microsoft YaHei;z-index:99;max-width:1600px'; d.textContent='ERR '+e.message; document.body.appendChild(d); });</script>
+<script type="module">
+import * as THREE from './lib/three.module.js';
+import { GLTFLoader } from './lib/GLTFLoader.js';
+import { DRACOLoader } from './lib/DRACOLoader.js';
+
+const st = (t) => { const e = document.getElementById('st'); if (e) e.textContent = t; };
+window.addEventListener('error', e => st('ERR ' + e.message));
+st('module start');
+const q = new URLSearchParams(location.search);
+const F = parseInt(q.get('f') || '0', 10);
+const TOTAL = parseInt(q.get('n') || '150', 10);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setSize(1920, 1080); renderer.setPixelRatio(1);
+renderer.setClearColor(0x0d1626, 1);
+document.body.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const draco = new DRACOLoader(); draco.setDecoderPath('./lib/draco/');
+const loader = new GLTFLoader(); loader.setDRACOLoader(draco);
+const model = await new Promise((res, rej) => loader.load('./80/assets/f02.glb', res, undefined, rej));
+const root = model.scene; st('glb loaded');
+
+// 灯光
+scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+const d1 = new THREE.DirectionalLight(0xffffff, 1.6); d1.position.set(1, 2, 1); scene.add(d1);
+const d2 = new THREE.DirectionalLight(0xffffff, 0.7); d2.position.set(-1, 1, -1); scene.add(d2);
+
+// 收集网格并按高度排序
+const meshes = [];
+root.traverse(o => { if (o.isMesh) { o.geometry.computeBoundingBox(); const b = o.geometry.boundingBox.clone().applyMatrix4(o.matrixWorld); meshes.push({ o, y: b.getCenter(new THREE.Vector3()).y }); } });
+meshes.sort((a,b) => a.y - b.y);
+const N = meshes.length; st('meshes ' + N);
+const shownFrac = Math.min(1, F / (TOTAL * 0.72));
+const showN = Math.max(1, Math.round(N * shownFrac));
+meshes.forEach((m,i) => { m.o.visible = i < showN; });
+
+// 包围盒与相机
+const box = new THREE.Box3().setFromObject(root);
+const c = box.getCenter(new THREE.Vector3());
+const size = box.getSize(new THREE.Vector3());
+const radius = Math.max(size.x, size.z) * 1.15;
+const ang = -0.85 + (F / TOTAL) * 0.55;
+const cam = new THREE.PerspectiveCamera(38, 1920/1080, 0.1, 200);
+cam.position.set(c.x + Math.sin(ang) * radius, c.y + radius * 0.55, c.z + Math.cos(ang) * radius);
+cam.lookAt(c.x, c.y - size.y * 0.05, c.z);
+scene.add(root);
+
+renderer.render(scene, cam); st('rendered ' + showN + '/' + N);
+document.getElementById('fill').style.width = (shownFrac*100).toFixed(1) + '%';
+document.getElementById('cnt').textContent = showN + ' / ' + N + ' 块';
+document.title = 'READY';
+</script></body></html>

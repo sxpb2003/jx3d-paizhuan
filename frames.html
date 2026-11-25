@@ -1,0 +1,84 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#0d1626;overflow:hidden}#st{position:fixed;left:20px;top:20px;color:#fff;font:22px monospace;z-index:9}</style></head><body>
+<div id="st">boot</div>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+const st = t => document.getElementById('st').textContent = t;
+const W = 1920, H = 1080, TOTAL = 150;
+const Q = new URLSearchParams(location.search);
+const SINGLE = Q.has('f');
+const F0 = parseInt(Q.get('f') || '0', 10);
+try {
+  const ej = await (await fetch('./100/elements.json')).json();
+  const F = ej.fields, I = n => F.indexOf(n);
+  const [iC,iFam,ix0,iy0,iz0,ix1,iy1,iz1] = ['cat','family','x0','y0','z0','x1','y1','z1'].map(I);
+  const qc = ej.categories.indexOf('QC');
+  const blocks = [];
+  for (const r of ej.rows) {
+    if (r[iC] !== qc) continue;
+    if (!(ej.families[r[iFam]]||'').includes('蒸压加气')) continue;
+    const x0=r[ix0], x1=r[ix1], y0=r[iy0], y1=r[iy1], z0=r[iz0], z1=r[iz1];
+    const w = Math.abs(x1-x0), d = Math.abs(z1-z0), h = Math.abs(y1-y0);
+    if (w < 0.01 || d < 0.01 || h < 0.01) continue;
+    blocks.push({ x: (x0+x1)/2, y: (y0+y1)/2, z: (z0+z1)/2, w, d, h, t: Math.min(w,d) });
+  }
+  st('blocks ' + blocks.length);
+
+  const renderer = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true });
+  renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.setClearColor(0x0d1626,1);
+  document.body.appendChild(renderer.domElement);
+  const scene = new THREE.Scene();
+  scene.add(new THREE.AmbientLight(0xffffff, 1.0));
+  const d1 = new THREE.DirectionalLight(0xffffff, 1.5); d1.position.set(3,4,2); scene.add(d1);
+  const d2 = new THREE.DirectionalLight(0xffffff, 0.6); d2.position.set(-3,2,-2); scene.add(d2);
+
+  const pal = { 0.10:0xe9dcc0, 0.20:0xd8c49a, 0.25:0xc9b28a, 0.30:0xb9a37a };
+  const geo = new THREE.BoxGeometry(1,1,1);
+  const mats = {};
+  const mesh = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color:0xffffff }), blocks.length);
+  mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  const color = new THREE.Color();
+  blocks.forEach((b,i)=>{
+    const key = Math.abs(b.t-0.10)<0.02 ? 0.10 : Math.abs(b.t-0.20)<0.02 ? 0.20 : Math.abs(b.t-0.25)<0.02 ? 0.25 : 0.30;
+    color.setHex(pal[key]);
+    mesh.setColorAt(i, color);
+  });
+  scene.add(mesh);
+
+  // 按标高升序
+  const order = blocks.map((b,i)=>i).sort((a,b)=> blocks[a].y - blocks[b].y || blocks[a].x - blocks[b].x);
+  const zero = new THREE.Matrix4().makeScale(0,0,0);
+  const tmp = new THREE.Matrix4();
+  blocks.forEach((b,i)=> mesh.setMatrixAt(i, zero));
+
+  const box = new THREE.Box3();
+  const v = new THREE.Vector3();
+  blocks.forEach(b=> box.expandByPoint(v.set(b.x,b.y,b.z)));
+  const c = box.getCenter(new THREE.Vector3());
+  const size = box.getSize(new THREE.Vector3());
+  const radius = Math.max(size.x, size.z) * 1.5;
+  const cam = new THREE.PerspectiveCamera(40, W/H, 0.1, 2000);
+
+  const FSTART = SINGLE ? F0 : 0, FEND = SINGLE ? F0 + 1 : TOTAL;
+for (let f = FSTART; f < FEND; f++) {
+    const frac = Math.min(1, f / (TOTAL*0.72));
+    const n = Math.max(1, Math.round(order.length * frac));
+    for (let k = 0; k < n; k++) {
+      const i = order[k], b = blocks[i];
+      tmp.makeScale(b.w, b.h, b.d).setPosition(b.x, b.y, b.z);
+      mesh.setMatrixAt(i, tmp);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+    const ang = -0.9 + (f/TOTAL)*0.6;
+    cam.position.set(c.x + Math.sin(ang)*radius, c.y + radius*0.62, c.z + Math.cos(ang)*radius);
+    cam.lookAt(c.x, c.y - size.y*0.05, c.z);
+    renderer.render(scene, cam);
+    const blob = await new Promise(r => renderer.domElement.toBlob(r, 'image/png'));
+    await fetch('/save?name=fr' + String(f).padStart(3,'0') + '.png', { method:'POST', body: blob });
+    if (f % 10 === 0) st('frame ' + f + '/' + TOTAL + ' blocks ' + n);
+  }
+  await fetch('/save?name=' + (SINGLE ? 'SINGLE_DONE.txt' : 'DONE.txt'), { method:'POST', body:'done' });
+  st('DONE f=' + FSTART);
+} catch (e) { st('ERR ' + e.message); await fetch('/save?name=ERR.txt', {method:'POST', body: e.message}); }
+</script></body></html>

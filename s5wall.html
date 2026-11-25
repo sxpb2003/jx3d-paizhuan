@@ -1,0 +1,88 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#0c1524;overflow:hidden;font-family:'Microsoft YaHei',sans-serif}
+#cap{position:fixed;left:80px;top:70px;z-index:9;color:#fff;font-size:52px;font-weight:700;letter-spacing:1px;white-space:nowrap;text-shadow:0 2px 12px rgba(0,0,0,.7)}
+#sub{position:fixed;left:80px;top:140px;z-index:9;color:#9fb2cd;font-size:30px;letter-spacing:1px;white-space:nowrap}
+#fl{position:fixed;right:80px;top:70px;z-index:9;color:#f2a33c;font-size:40px;font-weight:700;white-space:nowrap}
+</style></head><body>
+<div id="cap">幼儿园 · 逐层砌体</div>
+<div id="sub">只显示砌体墙，梁板不显示</div>
+<div id="fl"></div>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+const q=new URLSearchParams(location.search);
+const F=parseInt(q.get('f')||'0',10);
+const TOTAL=parseInt(q.get('n')||'375',10);
+const W=1920,H=1080;
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.setClearColor(0x0c1524,1);
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.add(new THREE.AmbientLight(0xffffff,0.95));
+const d1=new THREE.DirectionalLight(0xffffff,1.35); d1.position.set(60,120,80); scene.add(d1);
+const d2=new THREE.DirectionalLight(0xffffff,0.5); d2.position.set(-80,60,-60); scene.add(d2);
+
+const ej=await (await fetch('./s5/elements.json')).json();
+const FI=n=>ej.fields.indexOf(n);
+const [iFl,iC,ix0,iy0,iz0,ix1,iy1,iz1]=['floor','cat','x0','y0','z0','x1','y1','z1'].map(FI);
+const qc=ej.categories.indexOf('QC');
+const gz=ej.categories.indexOf('GZ');
+const byFloor=new Map();
+for(const r of ej.rows){
+  const c=r[iC];
+  if(c!==qc && c!==gz) continue;
+  const fl=r[iFl]||'F01';
+  if(!byFloor.has(fl)) byFloor.set(fl,[]);
+  byFloor.get(fl).push(r);
+}
+const keys=[...byFloor.keys()].sort();
+const floors=keys.map(k=>byFloor.get(k));
+console.log('floors', keys.map((k,i)=>k+':'+floors[i].length).join(' '));
+
+const geo=new THREE.BoxGeometry(1,1,1);
+const matQC=new THREE.MeshLambertMaterial({color:0xe6d5b0});
+const matGZ=new THREE.MeshLambertMaterial({color:0xc9cdd6});
+let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9,minZ=1e9,maxZ=-1e9;
+const meshes=[];
+floors.forEach((rows,fi)=>{
+  const mesh=new THREE.InstancedMesh(geo,matQC,rows.length);
+  const m4=new THREE.Matrix4();
+  const zero=new THREE.Matrix4().makeScale(0,0,0);
+  rows.forEach((r,i)=>{
+    const x0=r[ix0],x1=r[ix1],y0=r[iy0],y1=r[iy1],z0=r[iz0],z1=r[iz1];
+    const w=Math.abs(x1-x0),h=Math.abs(y1-y0),d=Math.abs(z1-z0);
+    const cx=(x0+x1)/2, cy=(y0+y1)/2, cz=(z0+z1)/2;
+    if(w<0.01||h<0.01||d<0.01){ mesh.setMatrixAt(i,zero); return; }
+    m4.makeScale(w,h,d).setPosition(cx,cy,cz);
+    mesh.setMatrixAt(i,m4);
+    minX=Math.min(minX,cx); maxX=Math.max(maxX,cx);
+    minY=Math.min(minY,cy); maxY=Math.max(maxY,cy);
+    minZ=Math.min(minZ,cz); maxZ=Math.max(maxZ,cz);
+  });
+  mesh.instanceMatrix.needsUpdate=true;
+  scene.add(mesh);
+  meshes.push(mesh);
+});
+const CX=(minX+maxX)/2, CY=(minY+maxY)/2, CZ=(minZ+maxZ)/2;
+const SX=maxX-minX, SY=maxY-minY, SZ=maxZ-minZ;
+const R=Math.max(SX,SZ,SY);
+
+// 逐层显现
+const perSeg=Math.floor(TOTAL/ (floors.length+0.6));
+let shown=0;
+meshes.forEach((m,i)=>{
+  const t0=i*perSeg;
+  const vis = F>=t0;
+  m.visible=vis;
+  if(vis) shown=i+1;
+});
+document.getElementById('fl').textContent = shown? ('第 '+shown+' 层 / 共 '+floors.length+' 层') : '';
+
+const ang=-0.95+(F/TOTAL)*0.45;
+const cam=new THREE.PerspectiveCamera(38,W/H,1,20000);
+const dist=R*1.35;
+cam.position.set(CX+Math.sin(ang)*dist, CY+dist*0.62, CZ+Math.cos(ang)*dist);
+cam.lookAt(CX, CY-SY*0.02, CZ);
+renderer.render(scene,cam);
+document.title='READY';
+</script></body></html>

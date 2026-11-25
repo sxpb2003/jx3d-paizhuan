@@ -1,0 +1,80 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#0c1524;overflow:hidden;font-family:'Microsoft YaHei',sans-serif;color:#fff}
+#cap{position:fixed;left:80px;top:64px;font-size:52px;font-weight:700;white-space:nowrap}
+#sub{position:fixed;left:80px;top:132px;font-size:28px;color:#9fb2cd;white-space:nowrap}
+#panel{position:fixed;right:70px;top:150px;width:470px;background:rgba(18,30,48,.86);border-left:6px solid #f2a33c;border-radius:8px;padding:26px 30px}
+#panel h3{margin:0 0 18px;font-size:28px;font-weight:600;color:#cfe0f5}
+.row{display:flex;justify-content:space-between;font-size:26px;line-height:2.1;color:#8fa3c0}
+.row.on{color:#fff;font-weight:700}
+.row.on .v{color:#f2a33c}
+.v{font-family:'Consolas',monospace}
+</style></head><body>
+<div id="cap">幼儿园 · 逐层砌体</div>
+<div id="sub">只显示砌体墙，梁板不显示</div>
+<div id="panel"><h3>各层砌块用量</h3><div id="rows"></div></div>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+const q=new URLSearchParams(location.search);
+const K=parseInt(q.get('k')||'4',10);
+const W=1920,H=1080;
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.setClearColor(0x0c1524,1);
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.add(new THREE.AmbientLight(0xffffff,0.95));
+const d1=new THREE.DirectionalLight(0xffffff,1.3); d1.position.set(60,120,80); scene.add(d1);
+const d2=new THREE.DirectionalLight(0xffffff,0.5); d2.position.set(-80,60,-60); scene.add(d2);
+
+const ej=await (await fetch('./s5/elements.json')).json();
+const FI=n=>ej.fields.indexOf(n);
+const [iFl,iC,ix0,iy0,iz0,ix1,iy1,iz1]=['floor','cat','x0','y0','z0','x1','y1','z1'].map(FI);
+const qc=ej.categories.indexOf('QC'), gz=ej.categories.indexOf('GZ');
+const names=['一层','二层','三层','屋面层'];
+const keys=[0,1,2,3];
+const byFloor=new Map();
+keys.forEach(k=>byFloor.set(k,[]));
+for(const r of ej.rows){
+  const c=r[iC]; if(c!==qc&&c!==gz) continue;
+  const f=Math.max(0,Math.min(3,Number(r[iFl])||0));
+  byFloor.get(keys[f]).push(r);
+}
+const geo=new THREE.BoxGeometry(1,1,1);
+const zero=new THREE.Matrix4().makeScale(0,0,0);
+let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9,minZ=1e9,maxZ=-1e9;
+keys.forEach((k,fi)=>{
+  const rows=byFloor.get(k);
+  const mesh=new THREE.InstancedMesh(geo,new THREE.MeshLambertMaterial({color:0xe6d5b0}),rows.length);
+  const m4=new THREE.Matrix4();
+  rows.forEach((r,i)=>{
+    const x0=r[ix0],x1=r[ix1],y0=r[iy0],y1=r[iy1],z0=r[iz0],z1=r[iz1];
+    const w=Math.abs(x1-x0),h=Math.abs(y1-y0),d=Math.abs(z1-z0);
+    const cx=(x0+x1)/2,cy=(y0+y1)/2,cz=(z0+z1)/2;
+    if(w<0.01||h<0.01||d<0.01){mesh.setMatrixAt(i,zero);return;}
+    m4.makeScale(w,h,d).setPosition(cx,cy,cz); mesh.setMatrixAt(i,m4);
+    minX=Math.min(minX,cx);maxX=Math.max(maxX,cx);
+    minY=Math.min(minY,cy);maxY=Math.max(maxY,cy);
+    minZ=Math.min(minZ,cz);maxZ=Math.max(maxZ,cz);
+  });
+  mesh.instanceMatrix.needsUpdate=true;
+  mesh.visible = fi < K;
+  scene.add(mesh);
+});
+const CX=(minX+maxX)/2,CY=(minY+maxY)/2,CZ=(minZ+maxZ)/2;
+const SX=maxX-minX,SY=maxY-minY,SZ=maxZ-minZ;
+const R=Math.max(SX,SZ,SY);
+const ang=-0.85;
+const cam=new THREE.PerspectiveCamera(38,W/H,1,20000);
+const dist=R*1.28;
+cam.position.set(CX+Math.sin(ang)*dist, CY+dist*0.68, CZ+Math.cos(ang)*dist);
+cam.lookAt(CX,CY-SY*0.02,CZ);
+renderer.render(scene,cam);
+
+const counts={'0':12289,'1':12046,'2':5969,'3':967};
+const html=['0','1','2','3'].map((k,i)=>{
+  const on = (i+1)===K ? ' on' : '';
+  return '<div class="row'+on+'"><span>'+names[i]+'</span><span class="v">'+(counts[k]||0).toLocaleString()+' 块</span></div>';
+}).join('');
+document.getElementById('rows').innerHTML=html;
+document.title='READY K='+K;
+</script></body></html>

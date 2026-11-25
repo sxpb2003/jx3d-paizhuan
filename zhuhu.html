@@ -1,0 +1,71 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;background:#0c1524;overflow:hidden;font-family:'Microsoft YaHei',sans-serif}
+#cap{position:fixed;left:80px;top:70px;z-index:9;color:#fff;font-size:56px;font-weight:700;white-space:nowrap;text-shadow:0 2px 12px rgba(0,0,0,.75)}
+#sub{position:fixed;left:80px;top:150px;z-index:9;color:#9fb2cd;font-size:30px;white-space:nowrap}
+#panel{position:fixed;right:70px;top:150px;width:470px;background:rgba(18,30,48,.86);border-left:6px solid #f2a33c;border-radius:8px;padding:26px 30px}
+#panel h3{margin:0 0 18px;font-size:28px;font-weight:600;color:#cfe0f5}
+.row{display:flex;justify-content:space-between;font-size:26px;line-height:2.15;color:#8fa3c0}
+.row .v{color:#f2a33c;font-family:Consolas,monospace}
+</style></head><body>
+<div id="cap"></div><div id="sub">仅显示砌体墙 · 梁板不显示</div>
+<div id="panel"><h3>本户型排砖参数</h3><div id="rows"></div></div>
+<script type="importmap">{ "imports": { "three": "./lib/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+const q=new URLSearchParams(location.search);
+const M=q.get('m')||'80';
+const F=parseInt(q.get('f')||'0',10);
+const TOTAL=parseInt(q.get('n')||'90',10);
+const LABEL=q.get('l')||'';
+const SUBLABEL=q.get('s')||'';
+const W=1920,H=1080;
+const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+renderer.setSize(W,H); renderer.setPixelRatio(1); renderer.setClearColor(0x0c1524,1);
+document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene();
+scene.add(new THREE.AmbientLight(0xffffff,0.95));
+const d1=new THREE.DirectionalLight(0xffffff,1.35); d1.position.set(60,120,80); scene.add(d1);
+const d2=new THREE.DirectionalLight(0xffffff,0.5); d2.position.set(-80,60,-60); scene.add(d2);
+document.getElementById('cap').textContent=LABEL;
+document.getElementById('sub').textContent=SUBLABEL;
+
+const ej=await (await fetch('./'+M+'/elements.json')).json();
+const FI=n=>ej.fields.indexOf(n);
+const [iC,ix0,iy0,iz0,ix1,iy1,iz1]=['cat','x0','y0','z0','x1','y1','z1'].map(FI);
+const qc=ej.categories.indexOf('QC'), gz=ej.categories.indexOf('GZ');
+const rows=[];
+for(const r of ej.rows){
+  const c=r[iC];
+  if(c!==qc && c!==gz) continue;
+  rows.push(r);
+}
+const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), new THREE.MeshLambertMaterial({color:0xe6d5b0}), rows.length);
+const m4=new THREE.Matrix4(), zero=new THREE.Matrix4().makeScale(0,0,0);
+let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9,minZ=1e9,maxZ=-1e9;
+rows.forEach((r,i)=>{
+  const x0=r[ix0],x1=r[ix1],y0=r[iy0],y1=r[iy1],z0=r[iz0],z1=r[iz1];
+  const w=Math.abs(x1-x0),h=Math.abs(y1-y0),d=Math.abs(z1-z0);
+  const cx=(x0+x1)/2, cy=(y0+y1)/2, cz=(z0+z1)/2;
+  if(w<0.01||h<0.01||d<0.01){ mesh.setMatrixAt(i,zero); return; }
+  m4.makeScale(w,h,d).setPosition(cx,cy,cz); mesh.setMatrixAt(i,m4);
+  minX=Math.min(minX,cx);maxX=Math.max(maxX,cx);
+  minY=Math.min(minY,cy);maxY=Math.max(maxY,cy);
+  minZ=Math.min(minZ,cz);maxZ=Math.max(maxZ,cz);
+});
+mesh.instanceMatrix.needsUpdate=true;
+scene.add(mesh);
+const CX=(minX+maxX)/2, CY=(minY+maxY)/2, CZ=(minZ+maxZ)/2;
+const SX=maxX-minX, SY=maxY-minY, SZ=maxZ-minZ;
+const R=Math.max(SX,SZ,SY);
+const ang=-0.9+(F/TOTAL)*0.5;
+const cam=new THREE.PerspectiveCamera(38,W/H,0.1,20000);
+const dist=R*1.25;
+cam.position.set(CX+Math.sin(ang)*dist, CY+dist*0.72, CZ+Math.cos(ang)*dist);
+cam.lookAt(CX,CY-SY*0.03,CZ);
+renderer.render(scene,cam);
+const P=['area','cnt','cut','rate','vol'];
+const val=P.map(k=>q.get(k)||'-');
+const items=[['建筑面积',val[0]+' ㎡'],['砌块总数',val[1]+' 块'],['其中切割块',val[2]+' 块'],['切割块占比',val[3]+' %'],['净砌体方量',val[4]+' m³']];
+document.getElementById('rows').innerHTML=items.map(([k,v])=>'<div class="row"><span>'+k+'</span><span class="v">'+v+'</span></div>').join('');
+document.title='READY '+rows.length;
+</script></body></html>
